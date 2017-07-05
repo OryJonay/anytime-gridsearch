@@ -1,0 +1,10 @@
+django
+coverage
+celery
+dask[complete]
+numpy
+scikit-learn
+psycopg2
+djangorestframework
+scipy
+bumpversion

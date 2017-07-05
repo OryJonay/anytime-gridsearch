@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html lang="en">
+	<head>
+	    <meta charset="UTF-8">
+	    <meta name="description" content="">
+	    <meta name="keywords" content="">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <!-- Latest compiled and minified CSS -->
+	    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+	    <link href={% static "css/grids_table.css" %} rel="stylesheet" type="text/css">
+	    <title>Grid Searches</title>
+	</head>
+	<body class="center">
+		{% block content %}
+		{% endblock %}
+	    <script
+	  src="https://code.jquery.com/jquery-1.11.3.min.js"
+	  integrity="sha256-7LkWEzqTdpEfELxcZZlS6wAx5Ff13zZ83lYO2/ujj7g="
+	  crossorigin="anonymous"></script>
+	  	<script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
+	    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+	    <!-- Vue.JS -->
+	    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.1/axios.min.js"></script>
+	    <script src="https://unpkg.com/vue-chartjs@2.6.0/dist/vue-chartjs.full.min.js"></script>
+	    <script type="text/javascript" src="{% static 'vuejs/grids_table.js' %}"></script>
+	</body>
+</html>
+
+
