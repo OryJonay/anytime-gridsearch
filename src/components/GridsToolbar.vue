@@ -9,6 +9,9 @@
 		  label="name"
 		  class="datasets-select"></v-select>
 	    </v-toolbar-item>
+	    <v-toolbar-item>
+	      <v-btn icon light class="pl-3">Settings<v-icon fa light class="pl-1">cogs</v-icon></v-btn>
+	    </v-toolbar-item>
       </v-toolbar-items>
       <v-toolbar-title class="hidden-sm-and-down">AnyTimeGridSearch <v-icon fa light>github</v-icon></v-toolbar-title>
       <v-toolbar-items>

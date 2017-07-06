@@ -4,27 +4,32 @@
       <br>
 	  <v-stepper v-model="e6" vertical>
 	    <v-stepper-step step="1" v-bind:complete="e6 > 1">
-	      Choose a dataset name
+	      Create a dataset
 	      <small>Dataset names must be unique</small>
 	    </v-stepper-step>
 	    <v-stepper-content step="1">
 	      <v-text-field
+	        v-model="datasetName"
 	        name="dataset-name"
 	        label="Dataset Name"
-	        id="dataset-name">
+	        id="dataset-name"
+	        required>
 	      </v-text-field>
+	      <multiple-file-uploader style="background: transparent"
+	        successMessagePath="" errorMessagePath=""
+	        postURL="http://127.0.0.1:8000/datasets/"
+	        :postMeta="datasetName"
+	        :minItems=2></multiple-file-uploader>
 	      <v-btn class="green" primary light @click.native="e6 = 2">Continue</v-btn>
 	      <v-btn light @click.native="e6 = 1">Cancel</v-btn>
 	    </v-stepper-content>
 	    <v-stepper-step step="2" v-bind:complete="e6 > 2">Upload examples</v-stepper-step>
 	    <v-stepper-content step="2">
-	      <multiple-file-uploader></multiple-file-uploader>
 	      <v-btn class="green" primary light @click.native="e6 = 3">Continue</v-btn>
 	      <v-btn light>Cancel</v-btn>
 	    </v-stepper-content>
 	    <v-stepper-step step="3">Upload labels</v-stepper-step>
 	    <v-stepper-content step="3">
-	      <multiple-file-uploader></multiple-file-uploader>
 	      <v-btn class="green" primary light @click.native="e6 = 4">Continue</v-btn>
 	      <v-btn light>Cancel</v-btn>
 	    </v-stepper-content>
@@ -47,7 +52,8 @@ export default {
   },
   data () {
     return {
-      e6: 1
+      e6: 1,
+      datasetName: ''
     }
   }
 }
@@ -63,11 +69,5 @@ export default {
 }
 .stepper__step--complete .stepper__step__step {
     background: #4caf50!important;
-}
-.uploadBox {
-    position: relative;
-    background: transparent;
-    padding: 0 1em 1em;
-    margin: 1em;
 }
 </style>

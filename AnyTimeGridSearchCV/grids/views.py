@@ -1,11 +1,15 @@
+from django.contrib.gis.shortcuts import numpy
 from django.shortcuts import get_object_or_404
 from django.views.generic.list import ListView
+from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView, \
     ListCreateAPIView
+from rest_framework.response import Response
 
 from AnyTimeGridSearchCV.grids.models import GridSearch, CVResult, DataSet
 from AnyTimeGridSearchCV.grids.serializers import GridSearchSerializer, \
     CVResultSerializer, DatasetSerializer
+from django.db.utils import IntegrityError
 
 
 class GridsTemplateView(ListView):
@@ -28,6 +32,9 @@ class GridsListView(ListCreateAPIView):
     queryset = GridSearch.objects.all()
     serializer_class = GridSearchSerializer
     
+    def post(self, request, *args, **kwargs):
+        return ListCreateAPIView.post(self, request, *args, **kwargs)
+    
 class GridDetailView(RetrieveAPIView):
     
     queryset = GridSearch.objects.all()
@@ -49,7 +56,22 @@ class DataSetsList(ListCreateAPIView):
     serializer_class = DatasetSerializer
     
     def post(self, request, *args, **kwargs):
-        return super(DataSetsList, self).post(request, *args, **kwargs)
+        # TODO: Validate & Create
+        name = request.data['postMeta']
+        examples, labels = request.FILES.getlist('items[]')
+        if examples.name != 'examples.csv':
+            return Response('Bad name of examples file', status=status.HTTP_400_BAD_REQUEST)
+        if labels.name != 'labels.csv':
+            return Response('Bad name of labels file', status=status.HTTP_400_BAD_REQUEST)
+        if len(numpy.genfromtxt(examples, delimiter=',')) != len(numpy.genfromtxt(labels, delimiter=',')):
+            return Response('Examples and labels are not the same length', status=status.HTTP_400_BAD_REQUEST)
+        try:
+            return Response(DatasetSerializer(DataSet.objects.create(name=name, 
+                                                                     examples=examples, 
+                                                                     labels=labels)).data, 
+                            status=status.HTTP_201_CREATED)
+        except IntegrityError:
+            return Response('Name already exists', status=status.HTTP_400_BAD_REQUEST)
     
 class DataSetGridsListView(ListAPIView):
     

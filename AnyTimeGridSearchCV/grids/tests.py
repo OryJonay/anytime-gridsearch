@@ -8,7 +8,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.db.models.expressions import RawSQL
 from django.test import LiveServerTestCase, Client as DjangoClient
-from django.test.testcases import TestCase
 from django.urls.base import reverse
 import numpy
 from sklearn import linear_model, ensemble
@@ -145,7 +144,6 @@ class TestValidation(LiveServerTestCase):
                             webserver_url=self.live_server_url)
         wait(gs.fit(iris.data, iris.target))
         self.assertAlmostEqual(grid_size, GridSearch.objects.get(uuid=gs._uuid).results.count(), delta=5)
-        print ('\n',gs.best_score_,'\n',gs.best_params_,'\n',gs.best_estimator_)
         
     def test_ATGridSearchCV_with_dataset(self):
         examples, labels = _create_dataset()
@@ -160,7 +158,6 @@ class TestValidation(LiveServerTestCase):
                             webserver_url=self.live_server_url)
         wait(gs.fit())
         self.assertAlmostEqual(grid_size, GridSearch.objects.get(uuid=gs._uuid).results.count(), delta=5)
-        print ('\n',gs.best_score_,'\n',gs.best_params_,'\n',gs.best_estimator_)
         
     def test_ATGridsSearchCV_without_dataset_and_fit(self):
         gs = ATGridSearchCV(tree.DecisionTreeClassifier,{'criterion':['gini','entropy'],
@@ -171,7 +168,7 @@ class TestValidation(LiveServerTestCase):
         with self.assertRaises(NoDatasetError):
             gs.fit()
     
-class TestViews(TestCase):
+class TestViews(LiveServerTestCase):
     def setUp(self):
         super(TestViews,self).setUp()
         GridSearch.objects.all().delete()
@@ -196,14 +193,10 @@ class TestViews(TestCase):
     def test_dataset_post(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
-#         ds, _ = DataSet.objects.get_or_create(name='IRIS', 
-#                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
-#                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
-#         
-        response = client.post(reverse('datasets'), data={'name':'IRIS', 'examples': examples_file, 'labels': label_file})
-        print(response.content)
+        response = client.post(reverse('datasets'), data={'postMeta':'IRIS', 'items[]': [examples_file, label_file]})
         self.assertEqual(201, response.status_code)
         self.assertEqual(3, len(response.data))
+        self.assertEqual(1, DataSet.objects.count())
     
     @unittest.skip
     def test_dataset_grids_results(self):
