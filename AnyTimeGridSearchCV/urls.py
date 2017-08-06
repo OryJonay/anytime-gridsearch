@@ -17,8 +17,8 @@ from django.conf.urls import url
 from django.contrib import admin
 
 from AnyTimeGridSearchCV.grids.views import GridsListView, GridDetailView, \
-    GridResultsList, GridsTemplateView, GridResultTemplateView, DataSetsList, \
-    DataSetGridsListView
+    GridResultsList, GridResultTemplateView, DataSetsList, \
+    DataSetGridsListView, EstimatorsListView, EstimatorDetailView
 
 
 urlpatterns = [
@@ -29,5 +29,7 @@ urlpatterns = [
     url(r'^grids/(?P<uuid>.+)/results$', GridResultsList.as_view(), name='grid_results'),
     url(r'^datasets/$', DataSetsList.as_view(), name='datasets'),
     url(r'^datasets/(?P<name>.+)/grids$', DataSetGridsListView.as_view(), name='dataset_grids'),
-    url(r'^', GridsTemplateView.as_view(), name='grids_index'),
+    url(r'^estimators/$', EstimatorsListView.as_view(), name="estimators_list"),
+    url(r'^estimators/(?P<clf>.+)$', EstimatorDetailView.as_view(), name="estimator_detail"),
+#     url(r'^', GridsTemplateView.as_view(), name='grids_index'),
 ]

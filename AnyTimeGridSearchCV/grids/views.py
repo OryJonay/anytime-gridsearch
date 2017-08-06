@@ -9,14 +9,31 @@ from rest_framework.response import Response
 from AnyTimeGridSearchCV.grids.models import GridSearch, CVResult, DataSet
 from AnyTimeGridSearchCV.grids.serializers import GridSearchSerializer, \
     CVResultSerializer, DatasetSerializer
+from AnyTimeGridSearchCV.grids.anytime_search import ESTIMATORS_DICT
 from django.db.utils import IntegrityError
+from django.utils.datastructures import MultiValueDictKeyError
+from rest_framework.views import APIView
+from numpydoc import docscrape
 
 
-class GridsTemplateView(ListView):
-    context_object_name = 'grids'
-    queryset = GridSearch.objects.all()
-    template_name = 'grids_index.html'
+
+class EstimatorsListView(APIView):
     
+    def get(self, request, *args, **kwargs):
+        return Response(list(ESTIMATORS_DICT.keys()), status=status.HTTP_200_OK)
+
+class EstimatorDetailView(APIView):
+    
+    def get(self, request, *args, **kwargs):
+        try:
+            clf = ESTIMATORS_DICT[kwargs.get('clf', 
+                                             'Not a valid scikit-learn estimator name')]
+        except KeyError:
+            return Response({'name': '', 'type': '', 'desc': ''}, 
+                        status=status.HTTP_200_OK)
+        return Response([{'name': arg_name, 'type': arg_type, 'desc': arg_desc} 
+                         for arg_name, arg_type, arg_desc in docscrape.ClassDoc(clf)['Parameters']], 
+                        status=status.HTTP_200_OK)
 
 class GridResultTemplateView(ListView):
     context_object_name = 'results'
@@ -56,9 +73,18 @@ class DataSetsList(ListCreateAPIView):
     serializer_class = DatasetSerializer
     
     def post(self, request, *args, **kwargs):
-        # TODO: Validate & Create
-        name = request.data['postMeta']
-        examples, labels = request.FILES.getlist('items[]')
+        try:
+            name = request.data['dataset']
+        except MultiValueDictKeyError:
+            return Response('Missing dataset name', status=status.HTTP_400_BAD_REQUEST)
+        if not name:
+            return Response('Missing dataset name', status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if len(request.FILES) > 2:
+                return Response('Too many files', status=status.HTTP_400_BAD_REQUEST)
+            examples, labels = request.FILES['file[0]'], request.FILES['file[1]'] 
+        except MultiValueDictKeyError:
+            return Response('Missing dataset files', status=status.HTTP_400_BAD_REQUEST)
         if examples.name != 'examples.csv':
             return Response('Bad name of examples file', status=status.HTTP_400_BAD_REQUEST)
         if labels.name != 'labels.csv':

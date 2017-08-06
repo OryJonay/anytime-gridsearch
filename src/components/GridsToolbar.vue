@@ -40,8 +40,7 @@ export default {
     return {
       dataset_names: [],
       classifiers: [],
-      selected_dataset: '',
-      dialog: false
+      selected_dataset: ''
     }
   },
   created () {
@@ -58,18 +57,13 @@ export default {
       this.getClassifiers()
     },
     updateGrid (val) {
-      this.$store.commit('change', {'uuid': val.uuid})
+      this.$store.commit('changeGrid', {'uuid': val.uuid})
     },
     getClassifiers () {
       if (this.selected_dataset === '') { return }
       axios.get(`http://127.0.0.1:8000/datasets/` + this.selected_dataset + `/grids`)
       .then(resp => { this.classifiers = resp.data })
       .catch(e => { console.log(e) })
-    },
-    flip () {
-      console.log(this.dialog)
-      this.dialog = !this.dialog
-      console.log(this.dialog)
     }
   }
 }

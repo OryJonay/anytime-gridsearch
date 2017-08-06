@@ -1,8 +1,8 @@
 <template>
   <v-layout row wrap>
-    <v-flex offset-md3 md5>
+    <v-flex offset-md1 md10>
       <br>
-	  <v-stepper v-model="e6" vertical>
+	  <v-stepper v-model="e6" vertical  overflow="scroll">
 	    <v-stepper-step step="1" v-bind:complete="e6 > 1">
 	      Create a dataset
 	      <small>Dataset names must be unique</small>
@@ -15,29 +15,24 @@
 	        id="dataset-name"
 	        required>
 	      </v-text-field>
-	      <multiple-file-uploader style="background: transparent"
-	        successMessagePath="" errorMessagePath=""
-	        postURL="http://127.0.0.1:8000/datasets/"
-	        :postMeta="datasetName"
-	        :minItems=2></multiple-file-uploader>
-	      <v-btn class="green" primary light @click.native="e6 = 2">Continue</v-btn>
+	      <dropzone 
+	        id="dataSetsDropzone"
+	        url="http://127.0.0.1:8000/datasets/"
+	        :show-remove-link="true"
+	        :max-file-size-in-m-b="25"
+	        :preview-template="previewTemplate"
+	        :dropzone-options="options"
+	        :timeout="30000000"
+	        :use-custom-dropzone-options="true"><input name="dataset" type="hidden" :value="datasetName"/></dropzone>
+	      <v-btn v-if="datasetName != ''" class="green" primary light @click.native="e6 = 2">Continue</v-btn>
 	      <v-btn light @click.native="e6 = 1">Cancel</v-btn>
 	    </v-stepper-content>
-	    <v-stepper-step step="2" v-bind:complete="e6 > 2">Upload examples</v-stepper-step>
-	    <v-stepper-content step="2">
-	      <v-btn class="green" primary light @click.native="e6 = 3">Continue</v-btn>
-	      <v-btn light>Cancel</v-btn>
-	    </v-stepper-content>
-	    <v-stepper-step step="3">Upload labels</v-stepper-step>
-	    <v-stepper-content step="3">
-	      <v-btn class="green" primary light @click.native="e6 = 4">Continue</v-btn>
-	      <v-btn light>Cancel</v-btn>
-	    </v-stepper-content>
-	    <v-stepper-step step="4">View setup instructions</v-stepper-step>
-	    <v-stepper-content step="4">
-	      <v-card class="grey lighten-1 z-depth-1 mb-5" height="200px"></v-card>
-	      <v-btn router :to="{name: 'GridResult'}" class="green" primary light @click.native="e6 = 1">Continue</v-btn>
-	      <v-btn class="green" light>Cancel</v-btn>
+	    <v-stepper-step step="2" v-bind:complete="e6 > 2">Setup Classifier Grid</v-stepper-step>
+	    <v-stepper-content step="2" style="{height: 500px}">
+	      <classifier-grid-form></classifier-grid-form>
+	      <v-btn v-if="current_clf != '' && current_clf != null" router :to="{name: 'GridResult'}" 
+	      class="green" primary light @click.native="finishClassifier">Continue</v-btn>
+	      <v-btn light @click.native="e6 = 1">Cancel</v-btn>
 	    </v-stepper-content>
 	  </v-stepper>
 	</v-flex>
@@ -45,15 +40,42 @@
 </template>
 
 <script>
-import MultipleFileUploader from 'vue2-multi-uploader'
+
+import Dropzone from 'vue2-dropzone'
+import ClassifierGridForm from './ClassifierGridForm.vue'
+
 export default {
   components: {
-    MultipleFileUploader
+    Dropzone,
+    ClassifierGridForm
   },
   data () {
     return {
       e6: 1,
-      datasetName: ''
+      datasetName: '',
+      options: {
+        'uploadMultiple': true
+      }
+    }
+  },
+  computed: {
+    current_clf () {
+      return this.$store.state.clf
+    }
+  },
+  methods: {
+    previewTemplate () {
+      return '<div class="dz-preview dz-file-preview">' +
+      '<div class="dz-image" style="width: 150px;height: 150px">' +
+      '<img data-dz-thumbnail /></div>' +
+      '<div class="dz-details">' +
+      '<div class="dz-size"><span data-dz-size></span></div>' +
+      '<div class="dz-filename"><span data-dz-name></span></div></div>' +
+      '<div class="dz-progress"><span class="dz-upload" data-dz-uploadprogress></span></div>' +
+      '<div class="dz-error-message"><span data-dz-errormessage></span></div></div>'
+    },
+    finishClassifier () {
+      this.$store.commit('clearCLFForm')
     }
   }
 }
@@ -61,13 +83,12 @@ export default {
 
 <style>
 .stepper--vertical {
-    padding-bottom: 36px;
-    max-height: 880px;
+  padding-bottom: 36px;
 }
 .stepper__step--active .stepper__step__step {
-    background: #4caf50!important;
+  background: #4caf50!important;
 }
 .stepper__step--complete .stepper__step__step {
-    background: #4caf50!important;
+  background: #4caf50!important;
 }
 </style>

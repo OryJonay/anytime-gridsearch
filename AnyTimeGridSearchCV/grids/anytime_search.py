@@ -1,13 +1,14 @@
-from itertools import zip_longest
 import json
-import sys
 
 from distributed import Client
 from django.db.models import Max
-import numpy
+import numpy, requests
 from sklearn.base import clone
 from sklearn.model_selection._search import GridSearchCV, _check_param_grid
 from sklearn.model_selection._validation import cross_val_score
+from sklearn.utils.testing import all_estimators
+
+ESTIMATORS_DICT = {e[0]:e[1] for e in all_estimators()}
 
 class NoDatasetError(ValueError, AttributeError):
     """Exception class to raise if ATGridSearchCV is used for fitting without a dataset.
@@ -25,18 +26,14 @@ class NoDatasetError(ValueError, AttributeError):
     NotFittedError('This LinearSVC instance is not fitted yet',)
     """
 
-def grouper(iterable, n, fillvalue=None):
-    "Collect data into fixed-length chunks or blocks"
-    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
-    args = [iter(iterable)] * n
-    return zip_longest(*args, fillvalue=fillvalue)
-
 def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None,
                     n_jobs=1, verbose=0, fit_params=None,
                     pre_dispatch='2*n_jobs', parameters=dict(), uuid='', url='http://127.0.0.1:8000'):
-    import requests
-    cv_score = cross_val_score(estimator, X, y, groups, scoring, cv, n_jobs, 
-                               verbose, fit_params, pre_dispatch)
+    try:
+        cv_score = cross_val_score(estimator, X, y, groups, scoring, cv, n_jobs, 
+                                   verbose, fit_params, pre_dispatch)
+    except Exception as e:
+        print('Not created because of uncaught exception in cv_score, type and reason: {} {}'.format(type(e), str(e)))
     response = requests.post('{url}/grids/{uuid}/results'.format(url=url, uuid=uuid), 
                   data={'score': round(cv_score.mean(),6), 
                         'gridsearch': uuid, 

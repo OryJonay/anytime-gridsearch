@@ -18,6 +18,7 @@ from sklearn.model_selection._validation import cross_val_score
 from AnyTimeGridSearchCV.grids.anytime_search import ATGridSearchCV, \
     NoDatasetError
 from AnyTimeGridSearchCV.grids.models import GridSearch, CVResult, DataSet
+from sklearn.utils.testing import all_estimators
 
 
 def _create_dataset():
@@ -179,6 +180,26 @@ class TestViews(LiveServerTestCase):
         except FileNotFoundError:
             pass
     
+    def test_list_estimators(self):
+        client = DjangoClient()
+        response = client.get(reverse('estimators_list'))
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(len(response.data), len(all_estimators()))
+    
+    def test_estimator_detail(self):
+        client = DjangoClient()
+        response = client.get(reverse('estimator_detail', kwargs={'clf': 'DecisionTreeClassifier'}))
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(len(response.data), 12)
+        
+    def test_estimators_detail(self):
+        client = DjangoClient()
+        for clf_name, clf in all_estimators():
+            response = client.get(reverse('estimator_detail', kwargs={'clf': clf_name}))
+            self.assertEqual(200, response.status_code)
+            for param_data in response.data:
+                self.assertEqual(len(param_data), 3)
+                
     def test_dataset_get(self):
         examples_file, label_file = _create_dataset()
         ds, _ = DataSet.objects.get_or_create(name='IRIS', 
@@ -193,33 +214,11 @@ class TestViews(LiveServerTestCase):
     def test_dataset_post(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'postMeta':'IRIS', 'items[]': [examples_file, label_file]})
+        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file,'file[1]': label_file})
         self.assertEqual(201, response.status_code)
         self.assertEqual(3, len(response.data))
         self.assertEqual(1, DataSet.objects.count())
     
-    @unittest.skip
-    def test_dataset_grids_results(self):
-        client = DjangoClient()
-        examples, labels = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
-                                              examples=SimpleUploadedFile(examples.name, examples.read()),
-                                              labels=SimpleUploadedFile(labels.name, labels.read()))
-        grid_size = 2*20*4
-        gs = ATGridSearchCV(tree.DecisionTreeClassifier,{'criterion':['gini','entropy'],
-                                                         'max_depth':range(1,21),
-                                                         'max_features':['auto','log2','sqrt',None]},
-                            client_kwargs={'address':LocalCluster()}, dataset=ds.pk,
-                            webserver_url=self.live_server_url)
-        gs.fit()
-        gs_1 = ATGridSearchCV(ensemble.RandomForestClassifier,{'criterion':['gini','entropy'],
-                                                         'max_depth':range(1,21),
-                                                         'max_features':['auto','log2','sqrt',None]},
-                            client_kwargs={'address':LocalCluster()}, dataset=ds.pk,
-                            webserver_url=self.live_server_url)
-        gs_1.fit()
-        response = client.get(reverse('dataset_grids', kwargs={'name': 'IRIS'}))
-        
     def test_dataset_grids_get(self):
         reg = linear_model.LinearRegression()
         examples_file, label_file = _create_dataset()
