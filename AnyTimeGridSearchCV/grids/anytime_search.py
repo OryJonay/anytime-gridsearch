@@ -34,6 +34,8 @@ def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None,
                                    verbose, fit_params, pre_dispatch)
     except Exception as e:
         print('Not created because of uncaught exception in cv_score, type and reason: {} {}'.format(type(e), str(e)))
+        cv_score = [0.]
+        
     response = requests.post('{url}/grids/{uuid}/results'.format(url=url, uuid=uuid), 
                   data={'score': round(cv_score.mean(),6), 
                         'gridsearch': uuid, 
@@ -42,6 +44,7 @@ def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None,
     if response.status_code != 201:
         print('Not created, status and reason: {status} {reason}'.format(status=response.status_code,
                                                                          reason=response.content))
+    return response
 
 class ATGridSearchCV(GridSearchCV):
     
@@ -70,20 +73,12 @@ class ATGridSearchCV(GridSearchCV):
             X = numpy.genfromtxt(self.dataset.examples, delimiter=',')
             y = numpy.genfromtxt(self.dataset.labels, delimiter=',')
         
-        #TODO - small bulks for sending, so to not kill the inner function
         return [self.dask_client.submit(fit_and_save, clone(self.estimator(**parameters)), 
                                                X, y, groups= groups, scoring=self.scoring, cv=self.cv, 
                                                n_jobs=self.n_jobs, verbose=self.verbose, fit_params=self.fit_params, 
                                                pre_dispatch=self.pre_dispatch, parameters=parameters, 
                                                uuid=self._uuid,
                                                url=self.webserver_url) for parameters in parameter_iterable]
-            
-#             results = zip(self.dask_client.gather((_[1] for _ in future_results)),
-#                           (_[0] for _ in future_results))
-#             _gs = GridSearch.objects.get(uuid=self._uuid)
-#             for res in results:
-#                 CVResult.objects.create(score=round(res[0].mean(),6),params=res[1],gridsearch=_gs,
-#                                            cross_validation_scores = res[0].tolist())
             
     @property
     def best_score_(self):

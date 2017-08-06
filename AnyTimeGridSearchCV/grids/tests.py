@@ -1,7 +1,6 @@
 from io import BytesIO
 import json
 import shutil
-import unittest
 
 from distributed import Client, LocalCluster, wait
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -14,11 +13,11 @@ from sklearn import linear_model, ensemble
 from sklearn import tree
 from sklearn.datasets import load_iris
 from sklearn.model_selection._validation import cross_val_score
+from sklearn.utils.testing import all_estimators
 
 from AnyTimeGridSearchCV.grids.anytime_search import ATGridSearchCV, \
     NoDatasetError
 from AnyTimeGridSearchCV.grids.models import GridSearch, CVResult, DataSet
-from sklearn.utils.testing import all_estimators
 
 
 def _create_dataset():
@@ -240,6 +239,23 @@ class TestViews(LiveServerTestCase):
         response = client.get(reverse('dataset_grids', kwargs={'name': 'IRIS'}))
         self.assertEqual(200, response.status_code)
         self.assertEqual(2, len(response.data))
+        
+    def test_cvscore_post(self):
+        examples_file, label_file = _create_dataset()
+        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+                                              examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
+                                              labels=SimpleUploadedFile(label_file.name, label_file.read()))
+        gs_1 = ATGridSearchCV(ensemble.RandomForestClassifier,{'criterion':['gini','entropy'],
+                                                         'max_depth':range(1,21),
+                                                         'max_features':['auto','log2','sqrt',None]},
+                            client_kwargs={'address':LocalCluster()}, dataset=ds.pk, webserver_url=self.live_server_url)
+        from AnyTimeGridSearchCV.grids.anytime_search import fit_and_save
+        params = {'criterion': 'gini', 'max_depth': 3, 'max_features': 'log2'}
+        res = fit_and_save(ensemble.RandomForestClassifier(**params), 
+                           X=numpy.genfromtxt(ds.examples, delimiter=','), 
+                           y=numpy.genfromtxt(ds.labels, delimiter=','), 
+                           parameters=params, uuid=gs_1._uuid, url= gs_1.webserver_url)
+        self.assertEqual(res.status_code, 201)
         
     def test_grids_list_get(self):
         iris = load_iris()
