@@ -35,15 +35,6 @@ class EstimatorDetailView(APIView):
                          for arg_name, arg_type, arg_desc in docscrape.ClassDoc(clf)['Parameters']], 
                         status=status.HTTP_200_OK)
 
-class GridResultTemplateView(ListView):
-    context_object_name = 'results'
-    queryset = CVResult.objects.all()
-    template_name = 'search_results.html'
-
-    def get_queryset(self):
-        _gs = get_object_or_404(GridSearch,uuid=self.kwargs['uuid'])
-        return _gs.results.order_by('-score')
-    
 class GridsListView(ListCreateAPIView):
     
     queryset = GridSearch.objects.all()

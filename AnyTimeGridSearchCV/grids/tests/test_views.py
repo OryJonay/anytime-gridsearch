@@ -10,7 +10,7 @@ from sklearn import linear_model, ensemble, tree
 from sklearn.datasets.base import load_iris
 from sklearn.utils.testing import all_estimators
 
-from AnyTimeGridSearchCV.grids.anytime_search import ATGridSearchCV
+from AnyTimeGridSearchCV.grids.anytime_search import ATGridSearchCV, fit_and_save
 from AnyTimeGridSearchCV.grids.models import DataSet, GridSearch
 from AnyTimeGridSearchCV.grids.tests import AbstractGridsTestCase, \
     _create_dataset
@@ -29,6 +29,12 @@ class TestViews(AbstractGridsTestCase):
         response = client.get(reverse('estimator_detail', kwargs={'clf': 'DecisionTreeClassifier'}))
         self.assertEqual(200, response.status_code)
         self.assertEqual(len(response.data), 12)
+        
+    def test_estimator_detail_bad(self):
+        client = DjangoClient()
+        response = client.get(reverse('estimator_detail', kwargs={'clf': 'alice and bob'}))
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(len(response.data), 3)
         
     def test_estimators_detail(self):
         client = DjangoClient()
@@ -49,14 +55,76 @@ class TestViews(AbstractGridsTestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(response.data))
     
-    def test_dataset_post(self):
+    def test_dataset_post_success(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
         response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file,'file[1]': label_file})
         self.assertEqual(201, response.status_code)
         self.assertEqual(3, len(response.data))
         self.assertEqual(1, DataSet.objects.count())
+        
+    def test_dataset_post_duplicate_name(self):
+        examples_file, label_file = _create_dataset()
+        client = DjangoClient()
+        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file,'file[1]': label_file})
+        self.assertEqual(201, response.status_code)
+        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file,'file[1]': label_file})
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(b'"Name already exists"', response.content)
     
+    def test_dataset_post_no_dataset(self):
+        client = DjangoClient()
+        response = client.post(reverse('datasets'), data={})
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(b'"Missing dataset name"', response.content)
+        
+    def test_dataset_post_blank_name(self):
+        examples_file, label_file = _create_dataset()
+        client = DjangoClient()
+        response = client.post(reverse('datasets'), data={'dataset':'', 'file[0]': examples_file,'file[1]': label_file})
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(b'"Missing dataset name"', response.content)
+        
+    def test_dataset_post_exceed_files(self):
+        examples_file, label_file = _create_dataset()
+        client = DjangoClient()
+        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file, 
+                                                          'file[1]': label_file, 'file[2]': examples_file})
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(b'"Too many files"', response.content)
+        
+    def test_dataset_post_missing_examples(self):
+        examples_file, label_file = _create_dataset()
+        client = DjangoClient()
+        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 
+                                                          'file[1]': label_file})
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(b'"Missing dataset files"', response.content)
+        
+    def test_dataset_post_missing_labels(self):
+        examples_file, label_file = _create_dataset()
+        client = DjangoClient()
+        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 
+                                                          'file[0]': examples_file})
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(b'"Missing dataset files"', response.content)
+        
+    def test_dataset_post_examples_bad_name(self):
+        examples_file, label_file = _create_dataset()
+        examples_file.name = 'EXAMPLES.csv'
+        client = DjangoClient()
+        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file,'file[1]': label_file})
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(b'"Bad name of examples file"', response.content)
+    
+    def test_dataset_post_labels_bad_name(self):
+        examples_file, label_file = _create_dataset()
+        label_file.name = 'EXAMPLES.csv'
+        client = DjangoClient()
+        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file,'file[1]': label_file})
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(b'"Bad name of labels file"', response.content)
+        
     def test_dataset_grids_get(self):
         reg = linear_model.LinearRegression()
         examples_file, label_file = _create_dataset()
@@ -88,14 +156,46 @@ class TestViews(AbstractGridsTestCase):
                                                          'max_depth':range(1,21),
                                                          'max_features':['auto','log2','sqrt',None]},
                             client_kwargs={'address':LocalCluster()}, dataset=ds.pk, webserver_url=self.live_server_url)
-        from AnyTimeGridSearchCV.grids.anytime_search import fit_and_save
         params = {'criterion': 'gini', 'max_depth': 3, 'max_features': 'log2'}
         res = fit_and_save(ensemble.RandomForestClassifier(**params), 
                            X=numpy.genfromtxt(ds.examples, delimiter=','), 
                            y=numpy.genfromtxt(ds.labels, delimiter=','), 
                            parameters=params, uuid=gs_1._uuid, url= gs_1.webserver_url)
         self.assertEqual(res.status_code, 201)
+    
+    def test_cvscore_post_bad_args(self):
+        examples_file, label_file = _create_dataset()
+        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+                                              examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
+                                              labels=SimpleUploadedFile(label_file.name, label_file.read()))
+        gs_1 = ATGridSearchCV(ensemble.RandomForestClassifier,{'criterion':['gini','entropy'],
+                                                         'max_depth':range(1,21),
+                                                         'max_features':['auto','log2','sqrt',None]},
+                            client_kwargs={'address':LocalCluster()}, dataset=ds.pk, webserver_url=self.live_server_url)
+        params = {'criterion': 'gini', 'max_depth': 3, 'max_features': 1000}
+        res = fit_and_save(ensemble.RandomForestClassifier(**params), 
+                           X=numpy.genfromtxt(ds.examples, delimiter=','), 
+                           y=numpy.genfromtxt(ds.labels, delimiter=','), 
+                           parameters=params, uuid=gs_1._uuid, url= gs_1.webserver_url)
+        self.assertEqual(res.status_code, 201)
+        self.assertEqual(res.json()['score'], 0)
         
+    def test_cvscore_post_no_server(self):
+        examples_file, label_file = _create_dataset()
+        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+                                              examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
+                                              labels=SimpleUploadedFile(label_file.name, label_file.read()))
+        gs_1 = ATGridSearchCV(ensemble.RandomForestClassifier,{'criterion':['gini','entropy'],
+                                                         'max_depth':range(1,21),
+                                                         'max_features':['auto','log2','sqrt',None]},
+                            client_kwargs={'address':LocalCluster()}, dataset=ds.pk)
+        params = {'criterion': 'gini', 'max_depth': 3, 'max_features': 'auto'}
+        res = fit_and_save(ensemble.RandomForestClassifier(**params), 
+                           X=numpy.genfromtxt(ds.examples, delimiter=','), 
+                           y=numpy.genfromtxt(ds.labels, delimiter=','), 
+                           parameters=params, uuid=gs_1._uuid, url= gs_1.webserver_url)
+        self.assertNotEqual(res.status_code, 201)
+    
     def test_grids_list_get(self):
         iris = load_iris()
         client = DjangoClient()

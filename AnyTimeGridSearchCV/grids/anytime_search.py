@@ -34,7 +34,7 @@ def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None,
                                    verbose, fit_params, pre_dispatch)
     except Exception as e:
         print('Not created because of uncaught exception in cv_score, type and reason: {} {}'.format(type(e), str(e)))
-        cv_score = [0.]
+        cv_score = numpy.array([0.])
         
     response = requests.post('{url}/grids/{uuid}/results'.format(url=url, uuid=uuid), 
                   data={'score': round(cv_score.mean(),6), 
