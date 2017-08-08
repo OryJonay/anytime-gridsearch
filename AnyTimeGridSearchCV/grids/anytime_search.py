@@ -10,6 +10,14 @@ from sklearn.utils.testing import all_estimators
 
 ESTIMATORS_DICT = {e[0]:e[1] for e in all_estimators()}
 
+def _convert_clf_param(val):
+    if type(val) is dict: 
+        return range(val['start'], val['end'], val['skip'])
+    elif type(val) is list:
+        return val
+    elif type(val) is str:
+        return list(map(str.strip, val.split(',')))
+
 class NoDatasetError(ValueError, AttributeError):
     """Exception class to raise if ATGridSearchCV is used for fitting without a dataset.
 

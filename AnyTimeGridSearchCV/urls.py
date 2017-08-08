@@ -18,7 +18,8 @@ from django.contrib import admin
 
 from AnyTimeGridSearchCV.grids.views import GridsListView, GridDetailView, \
     GridResultsList, DataSetsList, \
-    DataSetGridsListView, EstimatorsListView, EstimatorDetailView
+    DataSetGridsListView, EstimatorsListView, EstimatorDetailView,\
+    ATGridSearchCreateView
 
 
 urlpatterns = [
@@ -30,5 +31,5 @@ urlpatterns = [
     url(r'^datasets/(?P<name>.+)/grids$', DataSetGridsListView.as_view(), name='dataset_grids'),
     url(r'^estimators/$', EstimatorsListView.as_view(), name="estimators_list"),
     url(r'^estimators/(?P<clf>.+)$', EstimatorDetailView.as_view(), name="estimator_detail"),
-#     url(r'^', GridsTemplateView.as_view(), name='grids_index'),
+    url(r'^gridsearch_create/$', ATGridSearchCreateView.as_view(), name='gridsearch_create')
 ]

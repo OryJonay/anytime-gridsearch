@@ -5,7 +5,7 @@ from django.test import LiveServerTestCase
 import numpy
 from sklearn.datasets.base import load_iris
 
-from AnyTimeGridSearchCV.grids.models import GridSearch, DataSet
+from AnyTimeGridSearchCV.grids.models import GridSearch, DataSet, CVResult
 
 
 def _create_dataset():
@@ -22,10 +22,20 @@ class AbstractGridsTestCase(LiveServerTestCase):
     
     def setUp(self):
         super(AbstractGridsTestCase,self).setUp()
+        CVResult.objects.all().delete()
         GridSearch.objects.all().delete()
         DataSet.objects.all().delete()
         try:
-            shutil.rmtree('media/datasets/IRIS/train/')
-            shutil.rmtree('media/datasets/IRIS/test/')
+            shutil.rmtree('media/datasets/')
+        except FileNotFoundError:
+            pass
+        
+    def tearDown(self):
+        super(AbstractGridsTestCase,self).tearDown()
+        CVResult.objects.all().delete()
+        GridSearch.objects.all().delete()
+        DataSet.objects.all().delete()
+        try:
+            shutil.rmtree('media/datasets/')
         except FileNotFoundError:
             pass

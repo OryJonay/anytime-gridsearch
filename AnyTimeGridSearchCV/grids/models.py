@@ -25,10 +25,10 @@ class CVResult(models.Model):
     cross_validation_scores = fields.ArrayField(models.FloatField(default=0.), default=list)
 
 def _path_to_upload_train(instance, filename):
-    return os.path.join('datasets', instance.name, 'train', filename)
+    return os.path.join('datasets', instance.name, filename)
 
 def _path_to_upload_test(instance, filename):
-    return os.path.join('datasets', instance.name, 'test', filename)
+    return os.path.join('datasets', instance.name, filename)
     
 class DataSet(models.Model):
     

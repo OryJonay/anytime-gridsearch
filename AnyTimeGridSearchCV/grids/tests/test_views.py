@@ -124,6 +124,40 @@ class TestViews(AbstractGridsTestCase):
         response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file,'file[1]': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Bad name of labels file"', response.content)
+    
+    def test_atgridsearch_post(self):
+        examples_file, label_file = _create_dataset()
+        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+                                              examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
+                                              labels=SimpleUploadedFile(label_file.name, label_file.read()))
+        post_data = {'clf':tree.DecisionTreeClassifier.__name__, 'dataset':ds.name}
+        post_data['args'] = {'criterion': 'gini, entropy',
+                             'max_features': {'start': 5, 'end': 10, 'skip': 1}}
+        
+        response = DjangoClient().post(reverse('gridsearch_create'), json.dumps(post_data), content_type="application/json")
+        self.assertEqual(201, response.status_code, response.data)
+        
+    def test_atgridsearch_post_no_dataset(self):
+        post_data = {'clf':tree.DecisionTreeClassifier.__name__, 'dataset':'IRIS'}
+        post_data['args'] = {'criterion': 'gini, entropy',
+                             'max_features': {'start': 5, 'end': 10, 'skip': 1}}
+        
+        response = DjangoClient().post(reverse('gridsearch_create'), json.dumps(post_data), content_type="application/json")
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(b'"No DataSet named IRIS"', response.content)
+        
+    def test_atgridsearch_post_no_clf(self):
+        examples_file, label_file = _create_dataset()
+        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+                                              examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
+                                              labels=SimpleUploadedFile(label_file.name, label_file.read()))
+        post_data = {'clf':'Tree', 'dataset':ds.name}
+        post_data['args'] = {'criterion': 'gini, entropy',
+                             'max_features': {'start': 5, 'end': 10, 'skip': 1}}
+        
+        response = DjangoClient().post(reverse('gridsearch_create'), json.dumps(post_data), content_type="application/json")
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(b'"No sklearn classifier named Tree"', response.content)
         
     def test_dataset_grids_get(self):
         reg = linear_model.LinearRegression()

@@ -16,8 +16,8 @@ class TestModels(AbstractGridsTestCase):
         ds, _ = DataSet.objects.get_or_create(name='IRIS', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
-        self.assertEqual('datasets/IRIS/train/examples.csv', ds.examples.name)
-        self.assertEqual('datasets/IRIS/test/labels.csv', ds.labels.name)
+        self.assertEqual('datasets/IRIS/examples.csv', ds.examples.name)
+        self.assertEqual('datasets/IRIS/labels.csv', ds.labels.name)
         loaded_train = numpy.genfromtxt(ds.examples, delimiter=',')
         loaded_labels = numpy.genfromtxt(ds.labels, delimiter=',')
         iris = load_iris()

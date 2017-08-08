@@ -1,20 +1,23 @@
+import json
+
+from distributed.deploy.local import LocalCluster
 from django.contrib.gis.shortcuts import numpy
+from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
+from django.utils.datastructures import MultiValueDictKeyError
 from django.views.generic.list import ListView
+from numpydoc import docscrape
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView, \
     ListCreateAPIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from AnyTimeGridSearchCV.grids.anytime_search import ESTIMATORS_DICT, \
+    _convert_clf_param, ATGridSearchCV
 from AnyTimeGridSearchCV.grids.models import GridSearch, CVResult, DataSet
 from AnyTimeGridSearchCV.grids.serializers import GridSearchSerializer, \
     CVResultSerializer, DatasetSerializer
-from AnyTimeGridSearchCV.grids.anytime_search import ESTIMATORS_DICT
-from django.db.utils import IntegrityError
-from django.utils.datastructures import MultiValueDictKeyError
-from rest_framework.views import APIView
-from numpydoc import docscrape
-
 
 
 class EstimatorsListView(APIView):
@@ -98,3 +101,20 @@ class DataSetGridsListView(ListAPIView):
     def get_queryset(self):
         _ds = get_object_or_404(DataSet, name=self.kwargs['name'])
         return _ds.grid_searches.all()
+    
+class ATGridSearchCreateView(APIView):
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            ds = DataSet.objects.get(name=request.data['dataset'])
+        except DataSet.DoesNotExist:
+            return Response('No DataSet named {}'.format(request.data['dataset']), status=status.HTTP_400_BAD_REQUEST)
+        try:
+            classifier = ESTIMATORS_DICT[request.data['clf']]
+        except KeyError:
+            return Response('No sklearn classifier named {}'.format(request.data['clf']), status=status.HTTP_400_BAD_REQUEST)
+        clf_params = {k:_convert_clf_param(v) for k,v in request.data['args'].items()}
+        gs = ATGridSearchCV(classifier, clf_params, dataset=ds.pk, client_kwargs={'address':LocalCluster()})
+        gs.fit()
+        return Response(gs._uuid, status=status.HTTP_201_CREATED)
+        

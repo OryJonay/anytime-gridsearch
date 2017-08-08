@@ -75,6 +75,9 @@ export default {
       '<div class="dz-error-message"><span data-dz-errormessage></span></div></div>'
     },
     finishClassifier () {
+      var data = { 'clf': this.$store.state.clf, 'dataset': this.datasetName }
+      data['args'] = this.$store.state.args
+      delete data['args']['__ob__']
       this.$store.commit('clearCLFForm')
     }
   }
