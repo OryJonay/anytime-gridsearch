@@ -1,4 +1,6 @@
 import json
+import logging
+import os
 
 from distributed import Client
 from django.db.models import Max
@@ -8,13 +10,16 @@ from sklearn.model_selection._search import GridSearchCV, _check_param_grid
 from sklearn.model_selection._validation import cross_val_score
 from sklearn.utils.testing import all_estimators
 
+from AnyTimeGridSearchCV.settings import BASE_DIR
+
+
 ESTIMATORS_DICT = {e[0]:e[1] for e in all_estimators()}
 
 def _convert_clf_param(val):
     if type(val) is dict: 
-        return range(val['start'], val['end'], val['skip'])
+        return range(int(val['start']), int(val['end']), int(val['skip']))
     elif type(val) is list:
-        return val
+        return [bool(v) for v in val]
     elif type(val) is str:
         return list(map(str.strip, val.split(',')))
 
@@ -34,23 +39,39 @@ class NoDatasetError(ValueError, AttributeError):
     NotFittedError('This LinearSVC instance is not fitted yet',)
     """
 
+logging.getLogger(__name__)
+logging.basicConfig(filename=os.path.join(BASE_DIR,'fit.log'), level=logging.DEBUG, 
+                    format='%(asctime)s %(levelname)s:%(message)s', 
+                    datefmt='%m/%d/%Y %I:%M:%S %p')
+
+
 def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None,
                     n_jobs=1, verbose=0, fit_params=None,
                     pre_dispatch='2*n_jobs', parameters=dict(), uuid='', url='http://127.0.0.1:8000'):
     try:
+        logging.debug('Trying to use cv_score')
         cv_score = cross_val_score(estimator, X, y, groups, scoring, cv, n_jobs, 
                                    verbose, fit_params, pre_dispatch)
+        logging.info('cv_score success %d', round(cv_score.mean(),6))
     except Exception as e:
-        print('Not created because of uncaught exception in cv_score, type and reason: {} {}'.format(type(e), str(e)))
+        logging.error('Not created because of uncaught exception in cv_score, type and reason: {} {}'.format(type(e), str(e)))
         cv_score = numpy.array([0.])
-        
-    response = requests.post('{url}/grids/{uuid}/results'.format(url=url, uuid=uuid), 
-                  data={'score': round(cv_score.mean(),6), 
-                        'gridsearch': uuid, 
-                        'cross_validation_scores': cv_score.tolist(),
-                        'params': json.dumps(parameters)})
+    
+    logging.debug('Trying to post results back to server')
+    try:
+        response = requests.post('{url}/grids/{uuid}/results'.format(url=url, uuid=uuid), 
+                      data={'score': round(cv_score.mean(),6), 
+                            'gridsearch': uuid, 
+                            'cross_validation_scores': cv_score.tolist(),
+                            'params': json.dumps(parameters)})
+    except requests.exceptions.ConnectionError as e:
+        logging.error('Exception in post: {type} {exc}'.format(type=type(e), exc=str(e)))
+        response = None
+    if response is None:
+        return
+    logging.info('POST request status code %d', response.status_code)
     if response.status_code != 201:
-        print('Not created, status and reason: {status} {reason}'.format(status=response.status_code,
+        logging.error('Not created, status and reason: {status} {reason}'.format(status=response.status_code,
                                                                          reason=response.content))
     return response
 

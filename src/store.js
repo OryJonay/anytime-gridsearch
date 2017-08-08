@@ -25,10 +25,11 @@ var store = new Vuex.Store({
       state.clf = payload.clf
     },
     addArgument (state, payload) {
-      if (state.args[payload.name] === undefined) {
-        state.args[payload.name] = {}
+      if (payload.name !== payload.type) {
+        state.args[payload.name][payload.type] = payload.value
+      } else {
+        state.args[payload.name] = payload.value
       }
-      state.args[payload.name][payload.type] = payload.value
     },
     updateArgsObject (state, payload) {
       var exisiting = new Set(Object.keys(state.args))

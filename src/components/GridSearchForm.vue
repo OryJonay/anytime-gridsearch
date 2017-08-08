@@ -43,6 +43,7 @@
 
 import Dropzone from 'vue2-dropzone'
 import ClassifierGridForm from './ClassifierGridForm.vue'
+import axios from 'axios'
 
 export default {
   components: {
@@ -78,6 +79,12 @@ export default {
       var data = { 'clf': this.$store.state.clf, 'dataset': this.datasetName }
       data['args'] = this.$store.state.args
       delete data['args']['__ob__']
+      axios.post(`http://127.0.0.1:8000/gridsearch_create/`, data)
+      .then(resp => {
+        var uuid = resp.data
+        console.log(uuid)
+      })
+      .catch(e => { console.log(e) })
       this.$store.commit('clearCLFForm')
     }
   }

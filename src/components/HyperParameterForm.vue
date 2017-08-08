@@ -34,7 +34,7 @@ export default {
       this.$store.commit('addArgument', {'name': val.name, 'type': val.placeholder.toLowerCase(), 'value': val.value})
     },
     updateBool (val) {
-      this.$store.commit('addArgument', {'name': val.name, 'type': val.placeholder.toLowerCase(), 'value': this.checkedOptions})
+      this.$store.commit('addArgument', {'name': val.name, 'type': val.name, 'value': this.checkedOptions})
     },
     updateString (val) {
       this.$store.commit('addArgument', {'name': val.name, 'type': val.name, 'value': val.value})
