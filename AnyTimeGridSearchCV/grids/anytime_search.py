@@ -13,7 +13,7 @@ ESTIMATORS_DICT = {e[0]:e[1] for e in all_estimators()}
 
 def _convert_clf_param(val):
     if type(val) is dict: 
-        return range(int(val['start']), int(val['end']), int(val['skip']))
+        return range(int(val['start']), int(val['end'])+1, int(val['skip']))
     elif type(val) is list:
         return [bool(v) for v in val]
     elif type(val) is str:
