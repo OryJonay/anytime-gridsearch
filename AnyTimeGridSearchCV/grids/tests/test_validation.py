@@ -59,7 +59,7 @@ class TestValidation(AbstractGridsTestCase):
         
     def test_ATGridSearchCV_with_dataset(self):
         examples, labels = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples.name, examples.read()),
                                               labels=SimpleUploadedFile(labels.name, labels.read()))
         grid_size = 2*20*4

@@ -13,11 +13,11 @@ class TestModels(AbstractGridsTestCase):
     
     def test_dataset_model_single_file(self):
         examples_file, label_file = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
-        self.assertEqual('datasets/IRIS/examples.csv', ds.examples.name)
-        self.assertEqual('datasets/IRIS/labels.csv', ds.labels.name)
+        self.assertEqual('datasets/TEST/examples.csv', ds.examples.name)
+        self.assertEqual('datasets/TEST/labels.csv', ds.labels.name)
         loaded_train = numpy.genfromtxt(ds.examples, delimiter=',')
         loaded_labels = numpy.genfromtxt(ds.labels, delimiter=',')
         iris = load_iris()
@@ -27,7 +27,7 @@ class TestModels(AbstractGridsTestCase):
     def test_grid_search_model_creation(self):
         reg = linear_model.LinearRegression()
         examples_file , label_file = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
         GridSearch.objects.get_or_create(classifier=reg.__class__.__name__, dataset=ds)

@@ -10,7 +10,8 @@ from sklearn import linear_model, ensemble, tree
 from sklearn.datasets.base import load_iris
 from sklearn.utils.testing import all_estimators
 
-from AnyTimeGridSearchCV.grids.anytime_search import ATGridSearchCV, fit_and_save
+from AnyTimeGridSearchCV.grids.anytime_search import ATGridSearchCV
+from AnyTimeGridSearchCV.grids.fit_and_save import fit_and_save
 from AnyTimeGridSearchCV.grids.models import DataSet, GridSearch
 from AnyTimeGridSearchCV.grids.tests import AbstractGridsTestCase, \
     _create_dataset
@@ -46,7 +47,7 @@ class TestViews(AbstractGridsTestCase):
                 
     def test_dataset_get(self):
         examples_file, label_file = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
         
@@ -58,7 +59,7 @@ class TestViews(AbstractGridsTestCase):
     def test_dataset_post_success(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file,'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
         self.assertEqual(201, response.status_code)
         self.assertEqual(3, len(response.data))
         self.assertEqual(1, DataSet.objects.count())
@@ -66,9 +67,9 @@ class TestViews(AbstractGridsTestCase):
     def test_dataset_post_duplicate_name(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file,'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
         self.assertEqual(201, response.status_code)
-        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file,'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Name already exists"', response.content)
     
@@ -88,7 +89,7 @@ class TestViews(AbstractGridsTestCase):
     def test_dataset_post_exceed_files(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file, 
+        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file, 
                                                           'file[1]': label_file, 'file[2]': examples_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Too many files"', response.content)
@@ -96,7 +97,7 @@ class TestViews(AbstractGridsTestCase):
     def test_dataset_post_missing_examples(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 
+        response = client.post(reverse('datasets'), data={'dataset':'TEST', 
                                                           'file[1]': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Missing dataset files"', response.content)
@@ -104,7 +105,7 @@ class TestViews(AbstractGridsTestCase):
     def test_dataset_post_missing_labels(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 
+        response = client.post(reverse('datasets'), data={'dataset':'TEST', 
                                                           'file[0]': examples_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Missing dataset files"', response.content)
@@ -113,7 +114,7 @@ class TestViews(AbstractGridsTestCase):
         examples_file, label_file = _create_dataset()
         examples_file.name = 'EXAMPLES.csv'
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file,'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Bad name of examples file"', response.content)
     
@@ -121,13 +122,13 @@ class TestViews(AbstractGridsTestCase):
         examples_file, label_file = _create_dataset()
         label_file.name = 'EXAMPLES.csv'
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'IRIS', 'file[0]': examples_file,'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Bad name of labels file"', response.content)
     
     def test_atgridsearch_post(self):
         examples_file, label_file = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
         post_data = {'clf':tree.DecisionTreeClassifier.__name__, 'dataset':ds.name}
@@ -138,17 +139,17 @@ class TestViews(AbstractGridsTestCase):
         self.assertEqual(201, response.status_code, response.data)
         
     def test_atgridsearch_post_no_dataset(self):
-        post_data = {'clf':tree.DecisionTreeClassifier.__name__, 'dataset':'IRIS'}
+        post_data = {'clf':tree.DecisionTreeClassifier.__name__, 'dataset':'TEST'}
         post_data['args'] = {'criterion': 'gini, entropy',
                              'max_features': {'start': 5, 'end': 10, 'skip': 1}}
         
         response = DjangoClient().post(reverse('gridsearch_create'), json.dumps(post_data), content_type="application/json")
         self.assertEqual(400, response.status_code)
-        self.assertEqual(b'"No DataSet named IRIS"', response.content)
+        self.assertEqual(b'"No DataSet named TEST"', response.content)
         
     def test_atgridsearch_post_no_clf(self):
         examples_file, label_file = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
         post_data = {'clf':'Tree', 'dataset':ds.name}
@@ -162,14 +163,14 @@ class TestViews(AbstractGridsTestCase):
     def test_dataset_grids_get(self):
         reg = linear_model.LinearRegression()
         examples_file, label_file = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
         
         
         gs_, _ =GridSearch.objects.get_or_create(classifier=reg.__class__.__name__, dataset=ds)
         client = DjangoClient()
-        response = client.get(reverse('dataset_grids', kwargs={'name': 'IRIS'}))
+        response = client.get(reverse('dataset_grids', kwargs={'name': 'TEST'}))
         self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(response.data))
         gs_1 = ATGridSearchCV(ensemble.RandomForestClassifier,{'criterion':['gini','entropy'],
@@ -177,13 +178,13 @@ class TestViews(AbstractGridsTestCase):
                                                          'max_features':['auto','log2','sqrt',None]},
                             client_kwargs={'address':LocalCluster()}, dataset=ds.pk, webserver_url=self.live_server_url)
         gs_1.fit()
-        response = client.get(reverse('dataset_grids', kwargs={'name': 'IRIS'}))
+        response = client.get(reverse('dataset_grids', kwargs={'name': 'TEST'}))
         self.assertEqual(200, response.status_code)
         self.assertEqual(2, len(response.data))
         
     def test_cvscore_post(self):
         examples_file, label_file = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
         gs_1 = ATGridSearchCV(ensemble.RandomForestClassifier,{'criterion':['gini','entropy'],
@@ -199,7 +200,7 @@ class TestViews(AbstractGridsTestCase):
     
     def test_cvscore_post_bad_args(self):
         examples_file, label_file = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
         gs_1 = ATGridSearchCV(ensemble.RandomForestClassifier,{'criterion':['gini','entropy'],
@@ -216,7 +217,7 @@ class TestViews(AbstractGridsTestCase):
         
     def test_cvscore_post_no_server(self):
         examples_file, label_file = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
         gs_1 = ATGridSearchCV(ensemble.RandomForestClassifier,{'criterion':['gini','entropy'],
@@ -314,7 +315,7 @@ class TestViews(AbstractGridsTestCase):
         
     def test_dataset_grid_results(self):
         examples, labels = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='IRIS', 
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples.name, examples.read()),
                                               labels=SimpleUploadedFile(labels.name, labels.read()))
         gs = ATGridSearchCV(tree.DecisionTreeClassifier,{'criterion':['gini','entropy'],

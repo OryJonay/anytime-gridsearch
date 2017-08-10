@@ -1,16 +1,12 @@
-import json
-import logging
-import os
-
 from distributed import Client
 from django.db.models import Max
-import numpy, requests
+import numpy
 from sklearn.base import clone
 from sklearn.model_selection._search import GridSearchCV, _check_param_grid
-from sklearn.model_selection._validation import cross_val_score
 from sklearn.utils.testing import all_estimators
 
-from AnyTimeGridSearchCV.settings import BASE_DIR
+from AnyTimeGridSearchCV.settings import DASK_SCHEDULER_PARAMS, EGG_PATH
+from AnyTimeGridSearchCV.grids.fit_and_save import fit_and_save
 
 
 ESTIMATORS_DICT = {e[0]:e[1] for e in all_estimators()}
@@ -38,49 +34,13 @@ class NoDatasetError(ValueError, AttributeError):
     ...                        # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     NotFittedError('This LinearSVC instance is not fitted yet',)
     """
-
-logging.getLogger(__name__)
-logging.basicConfig(filename=os.path.join(BASE_DIR,'fit.log'), level=logging.DEBUG, 
-                    format='%(asctime)s %(levelname)s:%(message)s', 
-                    datefmt='%m/%d/%Y %I:%M:%S %p')
-
-
-def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None,
-                    n_jobs=1, verbose=0, fit_params=None,
-                    pre_dispatch='2*n_jobs', parameters=dict(), uuid='', url='http://127.0.0.1:8000'):
-    try:
-        logging.debug('Trying to use cv_score')
-        cv_score = cross_val_score(estimator, X, y, groups, scoring, cv, n_jobs, 
-                                   verbose, fit_params, pre_dispatch)
-        logging.info('cv_score success %d', round(cv_score.mean(),6))
-    except Exception as e:
-        logging.error('Not created because of uncaught exception in cv_score, type and reason: {} {}'.format(type(e), str(e)))
-        cv_score = numpy.array([0.])
     
-    logging.debug('Trying to post results back to server')
-    try:
-        response = requests.post('{url}/grids/{uuid}/results'.format(url=url, uuid=uuid), 
-                      data={'score': round(cv_score.mean(),6), 
-                            'gridsearch': uuid, 
-                            'cross_validation_scores': cv_score.tolist(),
-                            'params': json.dumps(parameters)})
-    except requests.exceptions.ConnectionError as e:
-        logging.error('Exception in post: {type} {exc}'.format(type=type(e), exc=str(e)))
-        response = None
-    if response is None:
-        return
-    logging.info('POST request status code %d', response.status_code)
-    if response.status_code != 201:
-        logging.error('Not created, status and reason: {status} {reason}'.format(status=response.status_code,
-                                                                         reason=response.content))
-    return response
-
 class ATGridSearchCV(GridSearchCV):
     
     def __init__(self, estimator, param_grid, scoring=None, fit_params=None, 
         n_jobs=1, iid=True, refit=False, cv=None, verbose=0, 
         pre_dispatch='2*n_jobs', error_score='raise', 
-        return_train_score=True, client_kwargs=dict(), uuid='', dataset=None, 
+        return_train_score=True, client_kwargs=DASK_SCHEDULER_PARAMS, uuid='', dataset=None, 
         webserver_url='http://127.0.0.1:8000'):
         super(GridSearchCV, self).__init__(
             estimator=estimator, scoring=scoring, fit_params=fit_params,
@@ -91,6 +51,7 @@ class ATGridSearchCV(GridSearchCV):
         self.param_grid = param_grid
         _check_param_grid(param_grid)
         self.dask_client = Client(silence_logs=100, **client_kwargs)
+        self.dask_client.upload_file(EGG_PATH)
         self.dataset, _ = DataSet.objects.get_or_create(pk=dataset) if dataset is not None else (None, None)
         self._uuid = uuid if uuid else GridSearch.objects.create(classifier=estimator.__name__, dataset=self.dataset).uuid
         self.webserver_url = webserver_url

@@ -26,7 +26,7 @@ class AbstractGridsTestCase(LiveServerTestCase):
         GridSearch.objects.all().delete()
         DataSet.objects.all().delete()
         try:
-            shutil.rmtree('media/datasets/')
+            shutil.rmtree('media/datasets/TEST/')
         except FileNotFoundError:
             pass
         

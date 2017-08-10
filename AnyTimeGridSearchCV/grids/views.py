@@ -114,7 +114,7 @@ class ATGridSearchCreateView(APIView):
         except KeyError:
             return Response('No sklearn classifier named {}'.format(request.data['clf']), status=status.HTTP_400_BAD_REQUEST)
         clf_params = {k:_convert_clf_param(v) for k,v in request.data['args'].items()}
-        gs = ATGridSearchCV(classifier, clf_params, dataset=ds.pk, client_kwargs={'address':LocalCluster()})
+        gs = ATGridSearchCV(classifier, clf_params, dataset=ds.pk)
         gs.fit()
         return Response(gs._uuid, status=status.HTTP_201_CREATED)
         

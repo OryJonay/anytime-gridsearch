@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import socket
+import sys
+
+from corsheaders.defaults import default_headers
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -132,8 +137,18 @@ STATICFILES_DIRS = ( os.path.join('static'), )
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-from corsheaders.defaults import default_headers
 
 CORS_ALLOW_HEADERS = default_headers + (
     'cache-control',
 )
+
+EGG_PATH = os.path.join(BASE_DIR, 'dist', 'AnyTimeGridSearchCV-{}-py3.5.egg'.format('0.1.0'))
+
+DASK_SCHEDULER_PARAMS = {'address': ([l 
+                                      for l in ([ip 
+                                                 for ip in socket.gethostbyname_ex(socket.gethostname())[2] 
+                                                 if not ip.startswith("127.")][:1], 
+                                                [[(s.connect(('8.8.8.8', 53)), 
+                                                   s.getsockname()[0], s.close()) 
+                                                  for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) 
+                                      if l][0][0])+ ':8786'}
