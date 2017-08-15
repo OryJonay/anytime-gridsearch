@@ -23,6 +23,7 @@ class CVResult(models.Model):
     params = fields.JSONField(default=dict)
     gridsearch = models.ForeignKey(GridSearch, related_name='results')
     cross_validation_scores = fields.ArrayField(models.FloatField(default=0.), default=list)
+    errors = models.TextField(null=True, blank=True)
 
 def _path_to_upload_train(instance, filename):
     return os.path.join('datasets', instance.name, filename)

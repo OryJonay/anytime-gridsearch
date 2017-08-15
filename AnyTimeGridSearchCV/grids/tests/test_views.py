@@ -12,7 +12,7 @@ from sklearn.utils.testing import all_estimators
 
 from AnyTimeGridSearchCV.grids.anytime_search import ATGridSearchCV
 from AnyTimeGridSearchCV.grids.fit_and_save import fit_and_save
-from AnyTimeGridSearchCV.grids.models import DataSet, GridSearch
+from AnyTimeGridSearchCV.grids.models import DataSet, GridSearch, CVResult
 from AnyTimeGridSearchCV.grids.tests import AbstractGridsTestCase, \
     _create_dataset
 

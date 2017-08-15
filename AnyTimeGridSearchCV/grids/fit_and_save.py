@@ -4,7 +4,6 @@ Created on Aug 10, 2017
 @author: Ory Jonay
 '''
 import json
-import os
 
 import numpy
 import requests
@@ -16,16 +15,19 @@ def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None,
     try:
         cv_score = cross_val_score(estimator, X, y, groups, scoring, cv, n_jobs, 
                                    verbose, fit_params, pre_dispatch)
+        error = None
     except Exception as e:
         cv_score = numpy.array([0.])
-        parameters['_error'] = '{}: {}'.format(type(e), str(e))
+        error = '{}: {}'.format(e.__class__.__name__, str(e))
     
     try:
         response = requests.post('{url}/grids/{uuid}/results'.format(url=url, uuid=uuid), 
                       data={'score': round(cv_score.mean(),6), 
                             'gridsearch': uuid, 
                             'cross_validation_scores': cv_score.tolist(),
-                            'params': json.dumps(parameters)})
+                            'params': json.dumps(parameters),
+                            'errors': error})
+        
     except requests.exceptions.ConnectionError as e:
         response = None
     if response is None:
