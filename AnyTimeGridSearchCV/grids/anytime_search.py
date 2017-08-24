@@ -15,7 +15,7 @@ def _convert_clf_param(val):
     if type(val) is dict: 
         return range(int(val['start']), int(val['end'])+1, int(val['skip']))
     elif type(val) is list:
-        return [bool(v) for v in val]
+        return [v == 'True' for v in val]
     elif type(val) is str:
         return list(map(str.strip, val.split(',')))
 

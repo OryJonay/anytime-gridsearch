@@ -1,5 +1,6 @@
 import json
 
+from _io import BytesIO
 from distributed.client import wait
 from distributed.deploy.local import LocalCluster
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -7,7 +8,7 @@ from django.test import Client as DjangoClient
 from django.urls.base import reverse
 import numpy
 from sklearn import linear_model, ensemble, tree
-from sklearn.datasets.base import load_iris
+from sklearn.datasets.base import load_iris, load_breast_cancer
 from sklearn.utils.testing import all_estimators
 
 from AnyTimeGridSearchCV.grids.anytime_search import ATGridSearchCV
@@ -125,6 +126,20 @@ class TestViews(AbstractGridsTestCase):
         response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Bad name of labels file"', response.content)
+        
+    def test_dataset_post_dataset_length_mismatch(self):
+        examples_file, label_file = BytesIO(), BytesIO()
+        examples_file.name = 'examples.csv'
+        label_file.name = 'labels.csv'
+        iris = load_iris()
+        breast_cancer = load_breast_cancer()
+        numpy.savetxt(examples_file, iris.data, delimiter=',')
+        numpy.savetxt(label_file, breast_cancer.target, delimiter=',')
+        examples_file.seek(0), label_file.seek(0)
+        client = DjangoClient()
+        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
+        self.assertEqual(400, response.status_code)
+        self.assertEqual(b'"Examples and labels are not the same length"', response.content)
     
     def test_atgridsearch_post(self):
         examples_file, label_file = _create_dataset()
@@ -133,7 +148,8 @@ class TestViews(AbstractGridsTestCase):
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
         post_data = {'clf':tree.DecisionTreeClassifier.__name__, 'dataset':ds.name}
         post_data['args'] = {'criterion': 'gini, entropy',
-                             'max_features': {'start': 5, 'end': 10, 'skip': 1}}
+                             'max_features': {'start': 5, 'end': 10, 'skip': 1},
+                             'presort': ['True', 'False']}
         
         response = DjangoClient().post(reverse('gridsearch_create'), json.dumps(post_data), content_type="application/json")
         self.assertEqual(201, response.status_code, response.data)
