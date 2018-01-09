@@ -5,22 +5,17 @@
       <h6 hidden>{{ current_grid }}</h6>
       <v-select :on-change="updateSelection" :options="selections" :value.sync="selected"></v-select>
       <br>
-      <line-chart :chart-data="datacollection" 
-      :options="{responsive: false, maintainAspectRatio: true, legend: { display: false }}" 
-      :complete_data="complete_data"
-      :width="760"
-  	  :height="760"></line-chart>
+  	  <svg></svg>
     </v-flex>
   </v-layout>
 </template>
 <script>
-  import LineChart from './LineChart.js'
   import axios from 'axios'
   import vSelect from 'vue-select'
+  import * as d3 from 'd3'
 
   export default {
     components: {
-      LineChart,
       vSelect
     },
     computed: {
@@ -30,8 +25,6 @@
           this.uuid = newUuid
           this.selections = []
           this.selected = ''
-          this.datacollection = {labels: [], datasets: []}
-          this.complete_data = {}
           this.raw_data = []
           this.fillData()
         }
@@ -40,13 +33,10 @@
     },
     data () {
       return {
-        datacollection: {},
-        complete_data: {},
         raw_data: [],
         selected: '',
         selections: [],
-        uuid: '',
-        yLabel: 'Accuracy'
+        uuid: ''
       }
     },
     methods: {
@@ -56,46 +46,81 @@
           return
         }
         this.selected = val
-        var res = this.processData(this.raw_data)
-        this.complete_data = res[0]
-        this.datacollection = res[1]
+        this.processData(this.raw_data, val)
       },
-      processData (retData) {
-        var _labels = {}
-        var _datasets = []
+      processData (retData, val) {
         if (this.selections.length === 0) {
           this.selections = Object.keys(retData[0]['params'])
         }
-        for (var i = 0; i < retData.length; i++) {
-          _labels[retData[i]['params'][this.selected]] = []
-        }
-        for (i = 0; i < retData.length; i++) {
-          _labels[retData[i]['params'][this.selected]]
-          .push([retData[i]['params'], retData[i]['score']])
-        }
-        for (i = 0; i < _labels[Object.keys(_labels)[0]].length; i++) {
-          var resData = []
-          var resParams = []
-          var dataSetColor = '#' + (function co (lor) { return (lor += [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f'][Math.floor(Math.random() * 16)]) && (lor.length === 6) ? lor : co(lor) })('')
-          for (var x of Object.keys(_labels)) {
-            resData.push(_labels[x][i][1])
-            resParams.push(_labels[x][i][0])
-          }
-          var _name = []
-          for (var j = 0; j < this.selections.length; j++) {
-            if (this.selections[j] === this.selected) {
-              continue
-            }
-            _name.push([Object.keys(resParams[0])[j], resParams[0][Object.keys(resParams[0])[j]]].join('-'))
-          }
-          _datasets.push({'label': 'Score ' + _name.join(', '),
-            'borderColor': dataSetColor,
-            'data': resData,
-            'fill': false,
-            'backgroundColor': dataSetColor,
-            'showLine': false})
-        }
-        return [_labels, {labels: Object.keys(_labels), datasets: _datasets}]
+        d3.selectAll('g > *').remove()
+        var d3Data = retData.map(function (e) { return Object.assign({}, e.params, { 'score': e.score }) })
+        var margin = {top: 20, right: 20, bottom: 30, left: 40}
+        var width = 960 - margin.left - margin.right
+        var height = 760 - margin.top - margin.bottom
+        var xValue = function (d) { return d[val] } // data -> value
+        var xScale = typeof (d3Data[0][val]) === 'number' ? d3.scaleLinear().range([0, width]).domain(d3.extent(d3Data.map(function (i) { return i[val] })))
+          : d3.scaleOrdinal().range([0, width]).domain(d3.extent(d3Data.map(function (i) { return i[val] }))) // value -> display
+        var xMap = function (d) { return xScale(xValue(d)) } // data -> display
+        var xAxis = d3.axisBottom(xScale)
+        var yValue = function (d) { return d.score } // data -> value
+        var yScale = d3.scaleLinear().range([height, 0]).domain([0, 1]) // value -> display
+        var yMap = function (d) { return yScale(yValue(d)) } // data -> display
+        var yAxis = d3.axisLeft(yScale)
+
+// setup fill color
+        var cValue = function (d) { return d.score }
+        var color = d3.scaleLinear().domain([0, 1]).range(['brown', 'steelblue'])
+
+// add the graph canvas to the body of the webpage
+        var svg = d3.select('svg').attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+
+// add the tooltip area to the webpage
+        var tooltip = d3.select('body').append('div')
+        .attr('class', 'tooltip')
+        .style('opacity', 0)
+        svg.append('g')
+          .attr('class', 'x axis')
+          .attr('transform', 'translate(0,' + height + ')')
+          .call(xAxis)
+        svg.append('text')
+          .attr('x', width / 2)
+          .attr('y', height + 30)
+          .style('text-anchor', 'middle')
+          .text(val)
+        svg.append('g')
+          .attr('class', 'y axis')
+          .call(yAxis)
+        svg.append('text')
+          .attr('transform', 'rotate(-90)')
+          .attr('y', 0 - margin.left)
+          .attr('x', 0 - (height / 2))
+          .attr('dy', '0.71em')
+          .style('text-anchor', 'middle')
+          .text('Accuracy %')
+        svg.selectAll('.dot')
+          .data(d3Data)
+        .enter().append('circle')
+          .attr('class', 'dot')
+          .attr('r', 7)
+          .attr('cx', xMap)
+          .attr('cy', yMap)
+          .style('fill', function (d) { return color(cValue(d)) })
+          .on('mouseover', function (d) {
+            tooltip.transition()
+                 .duration(200)
+                 .style('opacity', 0.9)
+            tooltip.html(Object.entries(d).map(function (e) { return e.join(' = ') }).join('<br>'))
+                 .style('left', (d3.event.pageX + 5) + 'px')
+                 .style('top', (d3.event.pageY - 28) + 'px')
+          })
+          .on('mouseout', function (d) {
+            tooltip.transition()
+                 .duration(500)
+                 .style('opacity', 0)
+          })
       },
       fillData () {
         if (this.current_grid === '') {
@@ -105,9 +130,7 @@
         axios.get('http://127.0.0.1:8000/grids/' + this.current_grid + '/results')
         .then(function (response) {
           self.raw_data = response.data
-          var res = self.processData(response.data)
-          self.complete_data = res[0]
-          self.datacollection = res[1]
+          self.processData(response.data)
         })
         .catch(function (error) {
           console.log(error)
@@ -132,4 +155,9 @@
   float: left;
   line-height: 24px;
 }
+
+.tooltip {
+  position: absolute;
+}
+
 </style>

@@ -16,6 +16,7 @@
   "dependencies": {
     "axios": "^0.16.2",
     "babel-preset-es2015": "^6.24.1",
+    "d3": "^4.10.0",
     "vue": "^2.2.6",
     "vue-numeric": "^1.5.5",
     "vue-popperjs": "^1.1.2",

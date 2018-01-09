@@ -1,11 +1,8 @@
 import json
 
-from distributed.deploy.local import LocalCluster
-from django.contrib.gis.shortcuts import numpy
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.utils.datastructures import MultiValueDictKeyError
-from django.views.generic.list import ListView
 from numpydoc import docscrape
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView, \
@@ -15,7 +12,8 @@ from rest_framework.views import APIView
 
 from AnyTimeGridSearchCV.grids.anytime_search import ESTIMATORS_DICT, \
     _convert_clf_param, ATGridSearchCV
-from AnyTimeGridSearchCV.grids.models import GridSearch, CVResult, DataSet
+from AnyTimeGridSearchCV.grids.models import GridSearch, CVResult, DataSet,\
+    CVResultScore
 from AnyTimeGridSearchCV.grids.serializers import GridSearchSerializer, \
     CVResultSerializer, DatasetSerializer
 
@@ -59,7 +57,25 @@ class GridResultsList(ListCreateAPIView):
     
     def get_queryset(self):
         _gs = get_object_or_404(GridSearch, uuid=self.kwargs['uuid'])
-        return _gs.results.order_by('-score')
+        return _gs.results.all()
+    
+    def post(self, request, *args, **kwargs):
+        import numpy
+        _gs = get_object_or_404(GridSearch, uuid=self.kwargs['uuid'])
+        multimetric_scores = json.loads(request.data['cv_data'])
+        scorers = set(map(lambda j: j.split('_')[-1], 
+                          filter(lambda i: i != 'fit_time' and i != 'score_time', 
+                                 multimetric_scores)))
+        cv_result, _ = CVResult.objects.get_or_create(gridsearch=_gs, 
+                                                      params=json.loads(request.data['params']))
+        cv_result.fit_time = multimetric_scores['fit_time']
+        cv_result.score_time = multimetric_scores['score_time']
+        cv_result.save()
+        CVResultScore.objects.bulk_create([CVResultScore(scorer=scorer, train_scores=multimetric_scores['train_%s'%scorer], 
+                          test_scores=multimetric_scores['test_%s'%scorer],
+                          score=round(numpy.array(multimetric_scores['test_%s'%scorer]).mean(), 6),
+                          cv_result=cv_result) for scorer in scorers])
+        return Response(CVResultSerializer(cv_result).data, status=status.HTTP_201_CREATED)
     
 class DataSetsList(ListCreateAPIView):
     
@@ -67,6 +83,7 @@ class DataSetsList(ListCreateAPIView):
     serializer_class = DatasetSerializer
     
     def post(self, request, *args, **kwargs):
+        import numpy
         try:
             name = request.data['dataset']
         except MultiValueDictKeyError:
@@ -114,7 +131,8 @@ class ATGridSearchCreateView(APIView):
         except KeyError:
             return Response('No sklearn classifier named {}'.format(request.data['clf']), status=status.HTTP_400_BAD_REQUEST)
         clf_params = {k:_convert_clf_param(v) for k,v in request.data['args'].items()}
-        gs = ATGridSearchCV(classifier, clf_params, dataset=ds.pk)
-        gs.fit()
+        gs = ATGridSearchCV(classifier(), clf_params, dataset=ds.pk)
+        results = gs.fit()
+        print(len(results))
         return Response(gs._uuid, status=status.HTTP_201_CREATED)
         

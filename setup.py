@@ -11,10 +11,9 @@ from pip.req import parse_requirements
 from setuptools import setup, find_packages
 
 from AnyTimeGridSearchCV import grids
-from AnyTimeGridSearchCV.settings import BASE_DIR
 
-
-install_reqs = parse_requirements(os.path.join(BASE_DIR, 'REQUIREMENTS.txt'), session=uuid.uuid1())
+install_reqs = parse_requirements(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
+                                               'REQUIREMENTS.txt'), session=uuid.uuid1())
 
 setup(
     name = "AnyTimeGridSearchCV",

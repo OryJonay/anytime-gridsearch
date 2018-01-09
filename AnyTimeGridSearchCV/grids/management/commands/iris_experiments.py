@@ -51,7 +51,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         dataset = self.DATASETS[options['dataset']]()
         example_f, labels_f = _create_dataset(dataset)
-        client_kwargs = {'address': distributed.LocalCluster()}
         try:
             ds = DataSet.objects.get(name=options['dataset'])
         except DataSet.DoesNotExist:
@@ -60,27 +59,24 @@ class Command(BaseCommand):
                                       labels=SimpleUploadedFile(labels_f.name, labels_f.read()))
                                           
         if options['classifier'] == 'Tree':
-            gs_tree = ATGridSearchCV(sklearn.tree.DecisionTreeClassifier,{'criterion':['gini','entropy'],
+            gs_tree = ATGridSearchCV(sklearn.tree.DecisionTreeClassifier(),{'criterion':['gini','entropy'],
                                                          'max_depth':range(1,6),
                                                          'max_features':range(1,len(dataset.data[0]))},
                                      dataset=ds.name,
-                                     webserver_url=options['url'],
-                                     client_kwargs=client_kwargs)
+                                     webserver_url=options['url'])
             futures = gs_tree.fit(dataset.data, dataset.target)
             distributed.wait(futures)
         elif options['classifier'] == 'Forest':
-            gs_forest = ATGridSearchCV(sklearn.ensemble.RandomForestClassifier,{'criterion':['gini','entropy'],
+            gs_forest = ATGridSearchCV(sklearn.ensemble.RandomForestClassifier(),{'criterion':['gini','entropy'],
                                                          'max_depth':range(1,6),
                                                          'max_features':range(1,len(dataset.data[0]))},
                                        dataset=ds.name,
-                                       webserver_url=options['url'],
-                                       client_kwargs=client_kwargs)
+                                       webserver_url=options['url'])
             distributed.wait(gs_forest.fit(dataset.data,dataset.target))
         else:
-            gs_network = ATGridSearchCV(sklearn.neural_network.MLPClassifier,{'solver' : ['lbfgs','sgd','adam'],
+            gs_network = ATGridSearchCV(sklearn.neural_network.MLPClassifier(),{'solver' : ['lbfgs','sgd','adam'],
                                                          'learning_rate':['constant','invscaling','adaptive'],
                                                          'max_iter':range(200,2000,200)},
                                         dataset=ds.name,
-                                        webserver_url=options['url'],
-                                        client_kwargs=client_kwargs)
+                                        webserver_url=options['url'])
             distributed.wait(gs_network.fit(dataset.data,dataset.target))

@@ -5,8 +5,7 @@ from django.test import LiveServerTestCase
 import numpy
 from sklearn.datasets.base import load_iris
 
-from AnyTimeGridSearchCV.grids.models import GridSearch, DataSet, CVResult
-
+from django.db.utils import IntegrityError
 
 def _create_dataset():
     examples_file, label_file = BytesIO(), BytesIO()
@@ -21,9 +20,16 @@ def _create_dataset():
 class AbstractGridsTestCase(LiveServerTestCase):
     
     def setUp(self):
+        from AnyTimeGridSearchCV.grids.models import GridSearch, DataSet, CVResult, CVResultScore
+
         super(AbstractGridsTestCase,self).setUp()
+        CVResultScore.objects.all().delete()
         CVResult.objects.all().delete()
-        GridSearch.objects.all().delete()
+        try:
+            GridSearch.objects.all().delete()
+        except IntegrityError: # pragma: no cover
+            CVResult.objects.all().delete() 
+            GridSearch.objects.all().delete() 
         DataSet.objects.all().delete()
         try:
             shutil.rmtree('media/datasets/TEST/')
@@ -31,9 +37,15 @@ class AbstractGridsTestCase(LiveServerTestCase):
             pass
         
     def tearDown(self):
+        from AnyTimeGridSearchCV.grids.models import GridSearch, DataSet, CVResult, CVResultScore
+
         super(AbstractGridsTestCase,self).tearDown()
+        CVResultScore.objects.all().delete()
         CVResult.objects.all().delete()
-        GridSearch.objects.all().delete()
+        try:
+            GridSearch.objects.all().delete()
+        except IntegrityError: # pragma: no cover
+            pass 
         DataSet.objects.all().delete()
         try:
             shutil.rmtree('media/datasets/TEST/')
