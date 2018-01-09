@@ -1,6 +1,8 @@
 '''
 Created on Jan 9, 2018
 
+Settings for running with a scheduler running on localhost (must have scheduler running on same machine)
+
 @author: Ory Jonay
 '''
 
