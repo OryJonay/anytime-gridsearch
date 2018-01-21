@@ -1,17 +1,24 @@
-import warnings, functools
+from _io import BytesIO
+import uuid
+import warnings
 
 from distributed import Client
-from django.db.models import Max
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db.models import Max
+from scipy.sparse.coo import coo_matrix
+from scipy.sparse.csr import csr_matrix
 from sklearn.base import clone, is_classifier
 from sklearn.exceptions import NotFittedError
 from sklearn.metrics.scorer import _check_multimetric_scoring
 from sklearn.model_selection._search import GridSearchCV, _check_param_grid, \
     _CVScoreTuple
 from sklearn.model_selection._split import check_cv
+from sklearn.utils.metaestimators import _safe_split
 from sklearn.utils.testing import all_estimators
 from sklearn.utils.validation import indexable, _num_samples
-from sklearn.utils.metaestimators import _safe_split
+
+from AnyTimeGridSearchCV.grids.models import DataSet
 
 
 ESTIMATORS_DICT = {e[0]:e[1] for e in all_estimators()}
@@ -27,11 +34,13 @@ def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None,
 
     cv = check_cv(cv, y, classifier=is_classifier(estimator))
     scorers, _ = _check_multimetric_scoring(estimator, scoring=scoring)
-    
+
+    _base_scores = [0. for _ in range(cv.get_n_splits(X, y, groups))]
+
     cv_score = {}
-    cv_score.update({'train_%s'%s:numpy.array([0.]) for s in scorers})
-    cv_score.update({'test_%s'%s:numpy.array([0.]) for s in scorers})
-    cv_score.update({'fit_time':[0.], 'score_time': [0.]})
+    cv_score.update({'train_%s'%s:numpy.array(_base_scores) for s in scorers})
+    cv_score.update({'test_%s'%s:numpy.array(_base_scores) for s in scorers})
+    cv_score.update({'fit_time':_base_scores, 'score_time': _base_scores})
     
     try:
         cv_score = cross_validate(estimator, X, y, groups, scorers, cv, n_jobs, verbose, 
@@ -120,7 +129,13 @@ class ATGridSearchCV(GridSearchCV):
     
     @property
     def best_estimator_(self):
-        return clone(self.estimator.set_params(**self.best_params_))
+        import numpy
+        best_estimator_ = clone(self.estimator.set_params(**self.best_params_))
+        if self.refit:
+            X = numpy.genfromtxt(self.dataset.examples, delimiter=',')
+            y = numpy.genfromtxt(self.dataset.labels, delimiter=',')
+            best_estimator_.fit(X, y)
+        return best_estimator_
     
     @property
     def cv_results_(self):
@@ -227,11 +242,32 @@ class ATGridSearchCV(GridSearchCV):
         if X is None and self.dataset is None:
             raise NoDatasetError('No data provided')
         import numpy, six
+        from tempfile import TemporaryFile
 
         if self.dataset is not None and X is None:
             X = numpy.genfromtxt(self.dataset.examples, delimiter=',')
             y = numpy.genfromtxt(self.dataset.labels, delimiter=',')
-             
+            
+        if self.dataset is None and X is not None:
+            examples_file, label_file = TemporaryFile(), TemporaryFile()
+            try:
+                numpy.savetxt(examples_file, X if type(X) not in [coo_matrix, csr_matrix] else X.toarray(), delimiter=',')
+            except TypeError:
+                X.tofile(examples_file, sep=',')
+            examples_file.seek(0)
+            if y is not None:
+                try:
+                    numpy.savetxt(label_file, y if type(y) not in [coo_matrix, csr_matrix] else y.toarray(), delimiter=',')
+                except TypeError:
+                    y.tofile(label_file, sep=',')
+                label_file.seek(0)
+            else:
+                numpy.savetxt(label_file, [], delimiter=',')
+                label_file.seek(0)   
+            self.dataset = DataSet.objects.create(name=str(uuid.uuid4()), 
+                                              examples=SimpleUploadedFile('examples.csv', examples_file.read()),
+                                              labels=SimpleUploadedFile('labels.csv', label_file.read()))
+            
         estimator = self.estimator
         cv = check_cv(self.cv, y, classifier=is_classifier(estimator))
 
@@ -270,6 +306,7 @@ class ATGridSearchCV(GridSearchCV):
         
         self.test_sample_counts = [_num_samples(_safe_split(estimator, X, y, test, train)[0]) 
                                    for train, test in cv.split(X,y,groups)]
+        
 
         return [self.dask_client.submit(fit_and_save, clone(self.estimator.set_params(**parameters)), 
                                                X, y, groups= groups, scoring=scorers, cv=self.cv, 

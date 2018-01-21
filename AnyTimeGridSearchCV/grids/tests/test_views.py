@@ -192,7 +192,7 @@ class TestViews(AbstractGridsTestCase):
                                                          'max_depth':range(1,21),
                                                          'max_features':['auto','log2','sqrt',None]},
                             dataset=ds.pk, webserver_url=self.live_server_url)
-        gs_1.fit()
+        wait(gs_1.fit())
         response = client.get(reverse('dataset_grids', kwargs={'name': 'TEST'}))
         self.assertEqual(200, response.status_code)
         self.assertEqual(2, len(response.data))
@@ -281,7 +281,7 @@ class TestViews(AbstractGridsTestCase):
                                                          'max_depth':range(1,6),
                                                          'max_features':['auto','log2']},
                             webserver_url=self.live_server_url)
-        gs1.fit(iris.data, iris.target)
+        wait(gs1.fit(iris.data, iris.target))
         response = client.get(reverse('grids_list'))
         self.assertEqual(200,response.status_code)
         self.assertEqual(1, len(response.data))
@@ -289,7 +289,7 @@ class TestViews(AbstractGridsTestCase):
                                                          'max_depth':range(1,6),
                                                          'max_features':['auto','log2']},
                             webserver_url=self.live_server_url)
-        gs2.fit(iris.data, iris.target)
+        wait(gs2.fit(iris.data, iris.target))
         response = client.get(reverse('grids_list'))
         self.assertEqual(200, response.status_code)
         self.assertEqual(2, len(response.data))
@@ -304,7 +304,7 @@ class TestViews(AbstractGridsTestCase):
                                                          'max_features':['auto','log2']},
                             uuid=response.data.get('uuid',''),
                             webserver_url=self.live_server_url)
-        gs.fit(iris.data, iris.target)
+        wait(gs.fit(iris.data, iris.target))
         response = client.get(reverse('grids_list'))
         self.assertEqual(200,response.status_code)
         self.assertEqual(1, len(response.data))
