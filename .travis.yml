@@ -9,4 +9,5 @@ install:
         - pip install -r requirements.txt
         - python setup.py bdist_egg
 script:
-        - python manage.py test
+        - coverage run --source="AnyTimeGridSearchCV" manage.py test
+        - coveralls
