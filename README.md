@@ -25,6 +25,13 @@ The project requires:
 * distributed (>=1.18.3)
 
 ``` bash
+# clone repo
+git clone https://github.com/OryJonay/anytime-gridsearch.git anytimegridsearch
+
+# create virtual environment
+cd anytimegridsearch
+virtualenv -p python3.5 .
+
 # install dependencies
 pip install -r requirements.txt
 

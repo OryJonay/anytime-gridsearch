@@ -708,8 +708,6 @@ class TestAnyTimeGridSearch(AbstractGridsTestCase):
         # FailingClassifier issues a ValueError so this is what we look for.
         #assert_raises(ValueError, gs.fit, X, y)
         wait(gs.fit(X, y))
-        pass
-
 
     def test_classes__property(self):
         # Test that classes_ property matches best_esimator_.classes_
