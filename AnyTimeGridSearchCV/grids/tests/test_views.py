@@ -253,7 +253,7 @@ class TestViews(AbstractGridsTestCase):
                            y=numpy.genfromtxt(ds.labels, delimiter=','), 
                            parameters=params, uuid=gs_1._uuid, url= gs_1.webserver_url)
         self.assertEqual(res.status_code, 201)
-        self.assertEqual(res.json()['fit_time'], [0.])
+        self.assertEqual(res.json()['fit_time'], [0., 0., 0.])
         
     def test_cvscore_post_no_server(self):
         examples_file, label_file = _create_dataset()
