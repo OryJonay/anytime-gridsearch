@@ -25,7 +25,7 @@ ESTIMATORS_DICT = {e[0]:e[1] for e in all_estimators()}
 
 def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None, 
                  n_jobs=1, verbose=0, fit_params=None, pre_dispatch='2*n_jobs', 
-                 return_train_score=True, parameters=dict(), uuid='', url='http://127.0.0.1:8000'):
+                 return_train_score=True, error_score=0., parameters=dict(), uuid='', url='http://127.0.0.1:8000'):
 
     import json, requests, numpy
     from sklearn.model_selection._validation import cross_validate
@@ -35,7 +35,7 @@ def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None,
     cv = check_cv(cv, y, classifier=is_classifier(estimator))
     scorers, _ = _check_multimetric_scoring(estimator, scoring=scoring)
 
-    _base_scores = [0. for _ in range(cv.get_n_splits(X, y, groups))]
+    _base_scores = [error_score for _ in range(cv.get_n_splits(X, y, groups))]
 
     cv_score = {}
     cv_score.update({'train_%s'%s:numpy.array(_base_scores) for s in scorers})
@@ -93,7 +93,7 @@ class ATGridSearchCV(GridSearchCV):
     
     def __init__(self, estimator, param_grid, scoring=None, fit_params=None, 
         n_jobs=1, iid=True, refit=True, cv=None, verbose=0, 
-        pre_dispatch='2*n_jobs', error_score='raise', 
+        pre_dispatch='2*n_jobs', error_score=0., 
         return_train_score=True, client_kwargs=settings.DASK_SCHEDULER_PARAMS, uuid='', dataset=None, 
         webserver_url='http://127.0.0.1:8000'):
         super(GridSearchCV, self).__init__(
@@ -312,7 +312,7 @@ class ATGridSearchCV(GridSearchCV):
                                                X, y, groups= groups, scoring=scorers, cv=self.cv, 
                                                n_jobs=self.n_jobs, verbose=self.verbose, fit_params=fit_params, 
                                                pre_dispatch=self.pre_dispatch, parameters=parameters, 
-                                               uuid=self._uuid,
+                                               error_score=self.error_score, uuid=self._uuid,
                                                url=self.webserver_url) for parameters in candidate_params]
         
     def _check_is_fitted(self, method_name):
