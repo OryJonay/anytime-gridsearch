@@ -1,30 +1,41 @@
-# gui
+# AnyTimeGridSearchCV
 
-> A Vue.js project implementing a web GUI to explore the AnyTimeGridSearchCV results to allow further data mining
+> An [anytime](https://en.wikipedia.org/wiki/Anytime_algorithm) implementation of scikit-learn [GridSearchCV](http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html).
 
-## Build Setup
+## Motivation
+
+Waiting for GridSearchCV to finish running can be quite long, using an anytime approach will allow the algorithm to run in the background, with an endpoint to query for best result.
+
+## Brief overview
+
+The project consists of the following parts:
+
+1. A web application for creating and displaying searches and results through a REST API
+2. A distributed cluster for running the searches
+3. A [SPA](https://en.wikipedia.org/wiki/Single-page_application) built with [Vue.js](https://vuejs.org/v2/guide/) for web gui
+
+
+## Installation
+
+The project requires:
+
+* Python (>=3.5)
+* Django (>=1.11)
+* PostgreSQL (>=9.6)
+* distributed (>=1.18.3)
 
 ``` bash
 # install dependencies
-npm install
+pip install -r requirements.txt
 
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
-npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
-
-# run unit tests
-npm run unit
-
-# run e2e tests
-npm run e2e
-
-# run all tests
-npm test
+# run tests
+python manage.py test
 ```
 
-For detailed explanation on how things work, checkout the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+## Roadmap
+
+Things to do in the future (not sorted by priority):
+
+* Docker images for project
+* Finish web gui
+* Web gui unit tests & end to end tests with backend
