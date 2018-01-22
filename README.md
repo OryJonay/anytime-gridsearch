@@ -2,6 +2,8 @@
 
 > An [anytime](https://en.wikipedia.org/wiki/Anytime_algorithm) implementation of scikit-learn [GridSearchCV](http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html).
 
+[![Build Status](https://travis-ci.org/OryJonay/anytime-gridsearch.svg?branch=develop)](https://travis-ci.org/OryJonay/anytime-gridsearch)
+
 ## Motivation
 
 Waiting for GridSearchCV to finish running can be quite long, using an anytime approach will allow the algorithm to run in the background, with an endpoint to query for best result.
