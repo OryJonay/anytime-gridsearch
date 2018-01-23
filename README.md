@@ -2,7 +2,7 @@
 
 > An [anytime](https://en.wikipedia.org/wiki/Anytime_algorithm) implementation of scikit-learn [GridSearchCV](http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html).
 
-[![Build Status](https://travis-ci.org/OryJonay/anytime-gridsearch.svg?branch=develop)](https://travis-ci.org/OryJonay/anytime-gridsearch)
+[![Build Status](https://travis-ci.org/OryJonay/anytime-gridsearch.svg?branch=develop)](https://travis-ci.org/OryJonay/anytime-gridsearch) [![Coverage Status](https://coveralls.io/repos/github/OryJonay/anytime-gridsearch/badge.svg?branch=develop)](https://coveralls.io/github/OryJonay/anytime-gridsearch?branch=develop)
 
 ## Motivation
 
