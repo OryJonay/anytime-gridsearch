@@ -236,7 +236,7 @@ class TestAnyTimeGridSearch(AbstractGridsTestCase):
         # check that best params are equal
         try:
             assert_equal(grid_search_no_score.best_params_, grid_search.best_params_)
-        except AssertionError:
+        except AssertionError: # pragma: no cover
             if grid_search.best_params_ == {'C': 1}:
                 assert_equal(grid_search_no_score.best_params_, {'C': 10})
             else:
@@ -328,7 +328,7 @@ class TestAnyTimeGridSearch(AbstractGridsTestCase):
         grid_search = ATGridSearchCV(svm, param_grid={'C': [.1, 10]}, cv=cv, webserver_url=self.live_server_url)
         wait(grid_search.fit(X, y))
         first = grid_search.grid_scores_[0]
-        if first.parameters['C'] != 10:
+        if first.parameters['C'] != 10: # pragma: no cover
             first = grid_search.grid_scores_[1] 
         assert_equal(first.parameters['C'], 10)
         assert_array_almost_equal(first.cv_validation_scores, [1, 1. / 3.])
@@ -342,7 +342,7 @@ class TestAnyTimeGridSearch(AbstractGridsTestCase):
                                    iid=False, webserver_url=self.live_server_url)
         wait(grid_search.fit(X, y))
         first = grid_search.grid_scores_[0]
-        if first.parameters['C'] != 10:
+        if first.parameters['C'] != 10: # pragma: no cover
             first = grid_search.grid_scores_[1]
         assert_equal(first.parameters['C'], 10)
         # scores are the same as above
@@ -472,8 +472,8 @@ class TestAnyTimeGridSearch(AbstractGridsTestCase):
         cv = ATGridSearchCV(clf, {'C': [0.1, 1.0]}, webserver_url=self.live_server_url)
         assert_raises(ValueError, cv.fit, K_train, y_train)
     
-    
-    def xtest_grid_search_precomputed_kernel_error_kernel_function(self):
+    #TODO: rewrite test
+    def xtest_grid_search_precomputed_kernel_error_kernel_function(self): # pragma: no cover
         # Test that grid search returns an error when using a kernel_function
         X_, y_ = make_classification(n_samples=200, n_features=100, random_state=0)
         kernel_function = lambda x1, x2: np.dot(x1, x2.T)
@@ -537,7 +537,7 @@ class TestAnyTimeGridSearch(AbstractGridsTestCase):
         try:
             from pandas import Series, DataFrame
             types.append((DataFrame, Series))
-        except ImportError:
+        except ImportError: # pragma: no cover
             pass
     
         X = np.arange(100).reshape(10, 10)
