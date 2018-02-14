@@ -41,6 +41,33 @@ pip install -r requirements.txt
 python manage.py test
 ```
 
+## Usage
+The old way of using scikit-learn's GridSearchCV (taken from the examples part of [the documentation](http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html)):
+``` python
+from sklearn import svm, datasets
+from sklearn.model_selection import GridSearchCV
+iris = datasets.load_iris()
+parameters = {'kernel':('linear', 'rbf'), 'C':[1, 10]}
+svc = svm.SVC()
+clf = GridSearchCV(svc, parameters)
+clf.fit(iris.data, iris.target)
+print clf.best_params_['kernel']
+```
+This will run all possible grid points (4 in this example), and only after all grid points are fitted and cross validated will return (and print the best kernel).
+We'll do it like this:
+``` python
+from sklearn import svm, datasets
+from AnyTimeGridSearchCV.grids.anytime_search import AnyTimeGridSearchCV as GridSearchCV
+iris = datasets.load_iris()
+parameters = {'kernel':('linear', 'rbf'), 'C':[1, 10]}
+svc = svm.SVC()
+clf = GridSearchCV(svc, parameters)
+clf.fit(iris.data, iris.target)
+print clf.best_params_['kernel']
+```
+And that's (mostly) it- just change the search algorithm to the new one, and voilà- all done!
+The call to the search algorithm is non blocking, so it's possible to query the search algorithm before all the grid points are cross validated.
+
 ## Roadmap
 
 Things to do in the future (not sorted by priority):
