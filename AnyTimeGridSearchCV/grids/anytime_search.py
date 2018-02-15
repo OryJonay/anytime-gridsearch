@@ -43,6 +43,7 @@ def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None,
     cv_score.update({'fit_time':_base_scores, 'score_time': _base_scores})
     
     try:
+        estimator = estimator.set_params(**parameters)
         cv_score = cross_validate(estimator, X, y, groups, scorers, cv, n_jobs, verbose, 
                                   fit_params, pre_dispatch, return_train_score)
         error = None
@@ -308,7 +309,7 @@ class ATGridSearchCV(GridSearchCV):
                                    for train, test in cv.split(X,y,groups)]
         
 
-        return [self.dask_client.submit(fit_and_save, clone(self.estimator.set_params(**parameters)), 
+        return [self.dask_client.submit(fit_and_save, self.estimator, 
                                                X, y, groups= groups, scoring=scorers, cv=self.cv, 
                                                n_jobs=self.n_jobs, verbose=self.verbose, fit_params=fit_params, 
                                                pre_dispatch=self.pre_dispatch, parameters=parameters, 
