@@ -13,19 +13,19 @@
     label="name"
     placeholder="Choose hyperparameters for the GridSearch"
     :on-change="updateArg"></v-select>
-	<v-list three-line>
-	  <v-list-tile v-for="item in chosen_params" :key="item.name">
-	  <popper trigger="click">
+    <v-list three-line>
+      <v-list-tile v-for="item in chosen_params" :key="item.name">
+      <popper trigger="click">
         <v-list-tile-content slot="reference">
           <v-list-tile-title v-text="item.name"></v-list-tile-title>
           <v-list-tile-sub-title v-text="item.type"></v-list-tile-sub-title>
-	      <hyper-parameter-form :item="item"></hyper-parameter-form>
-	    </v-list-tile-content>
+          <hyper-parameter-form :item="item"></hyper-parameter-form>
+        </v-list-tile-content>
         <span class="popper">{{ prettyDesc(item.desc) }}</span>
       </popper>
-	  </v-list-tile>
-	</v-list>
-  <br v-if="addSpaces" v-for="n in howManySpaces">
+      </v-list-tile>
+    </v-list>
+  <!-- <br v-if="addSpaces" v-for="n in howManySpaces"> -->
   </div>
 </template>
 
@@ -60,8 +60,8 @@ export default {
   methods: {
     getClassifiers (search, loading) {
       axios.get(`http://127.0.0.1:8000/estimators/`)
-      .then(resp => { this.classifiers = resp.data })
-      .catch(e => { console.log(e) })
+        .then(resp => { this.classifiers = resp.data })
+        .catch(e => { console.log(e) })
     },
     prettyDesc (desc) {
       return desc.join('\n')
@@ -70,12 +70,12 @@ export default {
       if (val != null) {
         this.$store.commit('changeClassifier', {'clf': val})
         axios.get(`http://127.0.0.1:8000/estimators/` + val)
-        .then(resp => {
-          this.clf_params = resp.data
-          this.clf = val
-          this.chosen_params = []
-        })
-        .catch(e => { console.log(e) })
+          .then(resp => {
+            this.clf_params = resp.data
+            this.clf = val
+            this.chosen_params = []
+          })
+          .catch(e => { console.log(e) })
       } else {
         this.clf = ''
         this.clf_params = null
@@ -99,7 +99,7 @@ export default {
     padding: 2px;
     display: inline-block;
     border-radius: 3px;
-	position: relative !important;
+    position: relative !important;
     left: 0px !important;
     font-size: 14px;
     font-weight: normal;

@@ -1,6 +1,5 @@
 <template>
   <span id="app">
-    
     <grids-toolbar></grids-toolbar>
     <router-view></router-view>
   </span>

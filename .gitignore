@@ -19,7 +19,6 @@ Screenshots/
 .coverage
 .editorconfig
 .eslintignore
-.eslintrc.js
 .gitignore
 .postcssrc.js
 .project

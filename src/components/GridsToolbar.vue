@@ -1,31 +1,31 @@
 <template>
   <v-toolbar class="green" light>
       <v-toolbar-items>
-		<v-toolbar-item>
-		  <v-select 
-		  :options="dataset_names"
-		  :on-change="updateDataset"
-		  placeholder="Choose a dataset"
-		  label="name"
-		  class="datasets-select"></v-select>
-	    </v-toolbar-item>
-	    <v-toolbar-item>
-	      <v-btn icon light class="pl-3">Settings<v-icon fa light class="pl-1">cogs</v-icon></v-btn>
-	    </v-toolbar-item>
+        <v-toolbar-item>
+          <v-select
+          :options="dataset_names"
+          :on-change="updateDataset"
+          placeholder="Choose a dataset"
+          label="name"
+          class="datasets-select"></v-select>
+        </v-toolbar-item>
+        <v-toolbar-item>
+          <v-btn icon light class="pl-3">Settings<v-icon fa light class="pl-1">cogs</v-icon></v-btn>
+        </v-toolbar-item>
       </v-toolbar-items>
       <v-toolbar-title class="hidden-sm-and-down">AnyTimeGridSearch <v-icon fa light>github</v-icon></v-toolbar-title>
       <v-toolbar-items>
         <v-toolbar-item>
           <v-btn router icon light :to="{name:'GridSearchForm'}">New<v-icon>add</v-icon></v-btn>
-        </v-toolbar-item> 
-	    <v-toolbar-item>
-		  <v-select 
-		  :options="classifiers"
-		  :on-change="updateGrid"
-		  placeholder="Choose a classifier"
-		  label="classifier"
-		  class="classifiers-select"></v-select>
-	    </v-toolbar-item>
+        </v-toolbar-item>
+        <v-toolbar-item>
+          <v-select
+          :options="classifiers"
+          :on-change="updateGrid"
+          placeholder="Choose a classifier"
+          label="classifier"
+          class="classifiers-select"></v-select>
+        </v-toolbar-item>
       </v-toolbar-items>
   </v-toolbar>
 </template>
@@ -49,8 +49,8 @@ export default {
   methods: {
     getDatasets (search, loading) {
       axios.get(`http://127.0.0.1:8000/datasets/`)
-      .then(resp => { this.dataset_names = resp.data })
-      .catch(e => { console.log(e) })
+        .then(resp => { this.dataset_names = resp.data })
+        .catch(e => { console.log(e) })
     },
     updateDataset (val) {
       this.selected_dataset = val.name
@@ -62,8 +62,8 @@ export default {
     getClassifiers () {
       if (this.selected_dataset === '') { return }
       axios.get(`http://127.0.0.1:8000/datasets/` + this.selected_dataset + `/grids`)
-      .then(resp => { this.classifiers = resp.data })
-      .catch(e => { console.log(e) })
+        .then(resp => { this.classifiers = resp.data })
+        .catch(e => { console.log(e) })
     }
   }
 }
