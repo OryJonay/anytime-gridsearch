@@ -31,4 +31,5 @@ htmlcov/
 pip-selfcheck.json
 .cache/
 AnyTimeGridSearchCV.egg-info/
+dask-worker-space/
 

@@ -22,10 +22,10 @@ export default {
     current_grid () {
       var newUuid = this.$store.state.grid
       if (newUuid !== this.uuid) {
-        // this.uuid = newUuid
-        // this.selections = []
-        // this.selected = ''
-        // this.raw_data = []
+        this.uuid = newUuid
+        this.selections = []
+        this.selected = ''
+        this.raw_data = []
         this.fillData()
       }
       return this.$store.state.grid

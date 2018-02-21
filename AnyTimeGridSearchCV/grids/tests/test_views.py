@@ -269,7 +269,7 @@ class TestViews(AbstractGridsTestCase):
                            X=numpy.genfromtxt(ds.examples, delimiter=','), 
                            y=numpy.genfromtxt(ds.labels, delimiter=','), 
                            parameters=params, uuid=gs_1._uuid, url= gs_1.webserver_url)
-        self.assertIsNone(res)
+        self.assertEqual(res.status_code, 404)
     
     def test_grids_list_get(self):
         iris = load_iris()
