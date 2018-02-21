@@ -53,7 +53,7 @@ export default {
         this.selections = Object.keys(retData[0]['params'])
       }
       d3.selectAll('g > *').remove()
-      var d3Data = retData.map(function (e) { return Object.assign({}, e.params, { 'score': e.score }) })
+      var d3Data = retData.map(function (e) { return Object.assign({}, e.params, { 'score': e.scores.find(function (elm) { return elm.scorer === 'score' }).score }) })
       var margin = {top: 20, right: 20, bottom: 30, left: 40}
       var width = 960 - margin.left - margin.right
       var height = 760 - margin.top - margin.bottom
