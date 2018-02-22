@@ -10,6 +10,7 @@ from AnyTimeGridSearchCV.grids.anytime_search import ATGridSearchCV, \
 from AnyTimeGridSearchCV.grids.models import GridSearch, CVResult, DataSet
 from AnyTimeGridSearchCV.grids.tests import AbstractGridsTestCase, \
     _create_dataset
+from sklearn.exceptions import NotFittedError
 
 
 class TestValidation(AbstractGridsTestCase):
@@ -50,6 +51,8 @@ class TestValidation(AbstractGridsTestCase):
                                                          'max_features':['auto','log2','sqrt',None]},
                             dataset=ds.pk,
                             webserver_url=self.live_server_url)
+        with self.assertRaises(NotFittedError):
+            gs.cv_results_
         wait(gs.fit())
         self.assertAlmostEqual(grid_size, GridSearch.objects.get(uuid=gs._uuid).results.count(), delta=5)
         

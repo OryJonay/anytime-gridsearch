@@ -269,7 +269,7 @@ class TestViews(AbstractGridsTestCase):
                            X=numpy.genfromtxt(ds.examples, delimiter=','), 
                            y=numpy.genfromtxt(ds.labels, delimiter=','), 
                            parameters=params, uuid=gs_1._uuid, url= gs_1.webserver_url)
-        if hasattr(res, 'status_code'):
+        if hasattr(res, 'status_code'): # pragma: no cover
             self.assertEqual(res.status_code, 404)
         else:
             self.assertIsNone(res)

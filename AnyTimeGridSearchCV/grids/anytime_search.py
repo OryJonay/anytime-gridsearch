@@ -60,9 +60,9 @@ def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None,
                             'errors': error,
                             'cv_data': json.dumps(cv_score)})
         
-    except requests.exceptions.ConnectionError as e:
+    except requests.exceptions.ConnectionError as e: # pragma: no cover
         response = None
-    if response is None:
+    if response is None: # pragma: no cover
         return
     return response
 
