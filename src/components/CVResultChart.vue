@@ -157,4 +157,18 @@ export default {
   position: absolute;
 }
 
+.v-select .dropdown-toggle .clear {
+    position: absolute;
+    bottom: 9px;
+    right: 30px;
+    font-size: 23px;
+    font-weight: 700;
+    line-height: 1;
+    color: rgba(60,60,60,.5);
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    cursor: pointer;
+    visibility: hidden;
+}
 </style>

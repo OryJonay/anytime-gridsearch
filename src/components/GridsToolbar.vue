@@ -70,12 +70,12 @@ export default {
 </script>
 
 <style>
-  .datasets-select {
-    width: 410px;
-  }
-  .classifiers-select {
-    width: 410px;
-  }
+.datasets-select {
+  width: 410px;
+}
+.classifiers-select {
+  width: 410px;
+}
 .v-select .selected-tag {
   color: black;
   background-color: transparent;
@@ -86,5 +86,19 @@ export default {
   padding: 1px 0.25em;
   float: left;
   line-height: 24px;
+}
+.v-select .dropdown-toggle .clear {
+    position: absolute;
+    bottom: 9px;
+    right: 30px;
+    font-size: 23px;
+    font-weight: 700;
+    line-height: 1;
+    color: rgba(60,60,60,.5);
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    cursor: pointer;
+    visibility: hidden;
 }
 </style>
