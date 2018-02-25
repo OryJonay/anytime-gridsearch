@@ -14,6 +14,8 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "karma-chrome-launcher": "^2.2.0",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1",
     "vue-select": "^2.4.0"

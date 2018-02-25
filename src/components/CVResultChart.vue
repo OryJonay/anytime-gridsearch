@@ -22,9 +22,13 @@ export default {
     current_grid () {
       var newUuid = this.$store.state.grid
       if (newUuid !== this.uuid) {
+        // eslint-disable-next-line
         this.uuid = newUuid
+        // eslint-disable-next-line
         this.selections = []
+        // eslint-disable-next-line
         this.selected = ''
+        // eslint-disable-next-line
         this.raw_data = []
         this.fillData()
       }
