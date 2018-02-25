@@ -13,7 +13,7 @@ from setuptools import setup, find_packages
 from AnyTimeGridSearchCV import grids
 
 install_reqs = parse_requirements(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
-                                               'REQUIREMENTS.txt'), session=uuid.uuid1())
+                                               'requirements.txt'), session=uuid.uuid1())
 
 setup(
     name = "AnyTimeGridSearchCV",

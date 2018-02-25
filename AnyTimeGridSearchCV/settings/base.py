@@ -17,6 +17,8 @@ import sys
 from corsheaders.defaults import default_headers
 from distributed.deploy.local import LocalCluster
 
+from AnyTimeGridSearchCV.grids import __version__ as code_version
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -144,6 +146,7 @@ CORS_ALLOW_HEADERS = default_headers + (
     'cache-control',
 )
 
-SOURCE_PATH = os.path.join(BASE_DIR, 'dist', 'AnyTimeGridSearchCV-0.1.0-py3.5.egg')
+SOURCE_PATH = os.path.join(BASE_DIR, 'dist', 'AnyTimeGridSearchCV-{}-py{}.{}.egg'.format(code_version, 
+                                                                                         sys.version_info.major, sys.version_info.minor))
 
 DASK_SCHEDULER_PARAMS = {'address': LocalCluster(1, processes=False)}
