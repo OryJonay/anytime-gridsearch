@@ -124,7 +124,7 @@ export default {
         return
       }
       var self = this
-      axios.get('http://127.0.0.1:8000/grids/' + this.current_grid + '/results')
+      axios.get('/grids/' + this.current_grid + '/results')
         .then(function (response) {
           self.raw_data = response.data
           self.processData(response.data)

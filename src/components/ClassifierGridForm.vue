@@ -59,7 +59,7 @@ export default {
   },
   methods: {
     getClassifiers (search, loading) {
-      axios.get(`http://127.0.0.1:8000/estimators/`)
+      axios.get(`/estimators/`)
         .then(resp => { this.classifiers = resp.data })
         .catch(e => { console.log(e) })
     },
@@ -69,7 +69,7 @@ export default {
     updateClassifier (val) {
       if (val != null) {
         this.$store.commit('changeClassifier', {'clf': val})
-        axios.get(`http://127.0.0.1:8000/estimators/` + val)
+        axios.get(`/estimators/` + val)
           .then(resp => {
             this.clf_params = resp.data
             this.clf = val

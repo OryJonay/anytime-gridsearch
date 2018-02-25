@@ -48,7 +48,7 @@ export default {
   },
   methods: {
     getDatasets (search, loading) {
-      axios.get(`http://127.0.0.1:8000/datasets/`)
+      axios.get(`/datasets/`)
         .then(resp => { this.dataset_names = resp.data })
         .catch(e => { console.log(e) })
     },
@@ -61,7 +61,7 @@ export default {
     },
     getClassifiers () {
       if (this.selected_dataset === '') { return }
-      axios.get(`http://127.0.0.1:8000/datasets/` + this.selected_dataset + `/grids`)
+      axios.get(`/datasets/` + this.selected_dataset + `/grids`)
         .then(resp => { this.classifiers = resp.data })
         .catch(e => { console.log(e) })
     }

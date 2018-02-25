@@ -17,7 +17,7 @@
           </v-text-field>
           <dropzone
             id="dataSetsDropzone"
-            url="http://127.0.0.1:8000/datasets/"
+            url="/datasets/"
             :show-remove-link="true"
             :max-file-size-in-m-b="25"
             :preview-template="previewTemplate"
@@ -79,7 +79,7 @@ export default {
       var data = { 'clf': this.$store.state.clf, 'dataset': this.datasetName }
       data['args'] = this.$store.state.args
       delete data['args']['__ob__']
-      axios.post(`http://127.0.0.1:8000/gridsearch_create/`, data)
+      axios.post(`/gridsearch_create/`, data)
         .then(resp => {
           var uuid = resp.data
           console.log(uuid)
