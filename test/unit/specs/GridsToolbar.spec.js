@@ -50,9 +50,28 @@ describe('GridsToolbar.vue', () => {
       if (request.url === '/datasets/') {
         request.respondWith({
           status: 200,
-          response: [{'name': 'IRIS', 'examples': 'http://127.0.0.1:8000/datasets/datasets/IRIS/examples.csv', 'labels': 'http://127.0.0.1:8000/datasets/datasets/IRIS/labels.csv'}]
+          response: [{'name': 'IRIS',
+            'examples': 'http://127.0.0.1:8000/datasets/datasets/IRIS/examples.csv',
+            'labels': 'http://127.0.0.1:8000/datasets/datasets/IRIS/labels.csv'}]
         }).then(function () {
           expect(vm.dataset_names.length).to.equal(1)
+          done()
+        }).catch(done)
+      }
+    })
+  })
+  it('Updating dataset should get classifers list', (done) => {
+    const Constructor = Vue.extend(GridsToolbar)
+    const vm = new Constructor().$mount()
+    vm.updateDataset({ name: 'IRIS' })
+    moxios.wait(function () {
+      let request = moxios.requests.mostRecent()
+      if (request.url === '/datasets/IRIS/grids') {
+        request.respondWith({
+          status: 200,
+          response: [{ 'classifier': 'DecisionTreeClassifier' }]
+        }).then(function () {
+          expect(vm.classifiers.length).to.equal(1)
           done()
         }).catch(done)
       }
