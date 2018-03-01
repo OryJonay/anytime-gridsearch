@@ -27,17 +27,6 @@ describe('GridsToolbar.vue', () => {
     expect(vm.$el.querySelector('.hidden-sm-and-down').textContent)
       .to.equal('AnyTimeGridSearch github')
   })
-  it('Should mount and get a list of datasets', () => {
-    const Constructor = Vue.extend(GridsToolbar)
-    const vm = new Constructor().$mount()
-    moxios.stubRequest('/datasets/', {
-      status: 200,
-      response: [{'name': 'IRIS', 'examples': 'http://127.0.0.1:8000/datasets/datasets/IRIS/examples.csv', 'labels': 'http://127.0.0.1:8000/datasets/datasets/IRIS/labels.csv'}]
-    })
-    moxios.wait(function () {
-      expect(vm.data().datasets.length).to.equal(1)
-    })
-  })
   it('Should mount with blank dataset', () => {
     const Constructor = Vue.extend(GridsToolbar)
     const vm = new Constructor().$mount()
@@ -52,5 +41,21 @@ describe('GridsToolbar.vue', () => {
     const Constructor = Vue.extend(GridsToolbar)
     const vm = new Constructor().$mount()
     expect(vm.dataset_names.length).to.equal(0)
+  })
+  it('Should mount and get a list of datasets', (done) => {
+    const Constructor = Vue.extend(GridsToolbar)
+    const vm = new Constructor().$mount()
+    moxios.wait(function () {
+      let request = moxios.requests.mostRecent()
+      if (request.url === '/datasets/') {
+        request.respondWith({
+          status: 200,
+          response: [{'name': 'IRIS', 'examples': 'http://127.0.0.1:8000/datasets/datasets/IRIS/examples.csv', 'labels': 'http://127.0.0.1:8000/datasets/datasets/IRIS/labels.csv'}]
+        }).then(function () {
+          expect(vm.dataset_names.length).to.equal(1)
+          done()
+        }).catch(done)
+      }
+    })
   })
 })
