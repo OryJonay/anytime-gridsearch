@@ -14,8 +14,6 @@ The project consists of the following parts:
 
 1. A web application for creating and displaying searches and results through a REST API
 2. A distributed cluster for running the searches
-3. A [SPA](https://en.wikipedia.org/wiki/Single-page_application) built with [Vue.js](https://vuejs.org/v2/guide/) for web gui
-
 
 ## Installation
 
