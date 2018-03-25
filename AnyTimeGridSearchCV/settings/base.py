@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'AnyTimeGridSearchCV.grids.apps.GridsConfig',
     'corsheaders',
     'django_extensions',
+    'django_cleanup',
 ]
 
 MIDDLEWARE = [

@@ -3,6 +3,7 @@ import uuid
 
 from django.contrib.postgres import fields
 from django.db import models
+import shutil
 
 class GridSearch(models.Model):
     
@@ -38,3 +39,10 @@ class DataSet(models.Model):
     examples = models.FileField(upload_to=_path_to_upload_train)
     labels = models.FileField(upload_to=_path_to_upload_test)
     
+from django_cleanup.signals import cleanup_pre_delete
+
+def dataset_cleanup(**kwargs):
+    if len(os.listdir(os.path.dirname(kwargs['file'].path))) == 1:
+        shutil.rmtree(os.path.dirname(kwargs['file'].path), ignore_errors=True)
+
+cleanup_pre_delete.connect(dataset_cleanup)
