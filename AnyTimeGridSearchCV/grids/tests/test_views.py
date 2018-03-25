@@ -59,7 +59,7 @@ class TestViews(AbstractGridsTestCase):
     def test_dataset_post_success(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'name':'TEST', 'examples': examples_file, 'labels': label_file})
         self.assertEqual(201, response.status_code)
         self.assertEqual(3, len(response.data))
         self.assertEqual(1, DataSet.objects.count())
@@ -67,9 +67,9 @@ class TestViews(AbstractGridsTestCase):
     def test_dataset_post_duplicate_name(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'name':'TEST', 'examples': examples_file, 'labels': label_file})
         self.assertEqual(201, response.status_code)
-        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'name':'TEST', 'examples': examples_file, 'labels': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Name already exists"', response.content)
     
@@ -82,31 +82,21 @@ class TestViews(AbstractGridsTestCase):
     def test_dataset_post_blank_name(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'', 'file[0]': examples_file,'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'name':'', 'examples': examples_file, 'labels': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Missing dataset name"', response.content)
-        
-    def test_dataset_post_exceed_files(self):
-        examples_file, label_file = _create_dataset()
-        client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file, 
-                                                          'file[1]': label_file, 'file[2]': examples_file})
-        self.assertEqual(400, response.status_code)
-        self.assertEqual(b'"Too many files"', response.content)
         
     def test_dataset_post_missing_examples(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'TEST', 
-                                                          'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'name':'TEST', 'labels': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Missing dataset files"', response.content)
         
     def test_dataset_post_missing_labels(self):
         examples_file, label_file = _create_dataset()
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'TEST', 
-                                                          'file[0]': examples_file})
+        response = client.post(reverse('datasets'), data={'name':'TEST', 'examples': examples_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Missing dataset files"', response.content)
         
@@ -114,7 +104,7 @@ class TestViews(AbstractGridsTestCase):
         examples_file, label_file = _create_dataset()
         examples_file.name = 'EXAMPLES.csv'
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'name':'TEST', 'examples': examples_file, 'labels': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Bad name of examples file"', response.content)
     
@@ -122,7 +112,7 @@ class TestViews(AbstractGridsTestCase):
         examples_file, label_file = _create_dataset()
         label_file.name = 'EXAMPLES.csv'
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'name':'TEST', 'examples': examples_file, 'labels': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Bad name of labels file"', response.content)
         
@@ -136,7 +126,7 @@ class TestViews(AbstractGridsTestCase):
         numpy.savetxt(label_file, breast_cancer.target, delimiter=',')
         examples_file.seek(0), label_file.seek(0)
         client = DjangoClient()
-        response = client.post(reverse('datasets'), data={'dataset':'TEST', 'file[0]': examples_file,'file[1]': label_file})
+        response = client.post(reverse('datasets'), data={'name':'TEST', 'examples': examples_file, 'labels': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Examples and labels are not the same length"', response.content)
     

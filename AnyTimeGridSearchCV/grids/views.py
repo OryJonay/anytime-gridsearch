@@ -85,15 +85,13 @@ class DataSetsList(ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         import numpy
         try:
-            name = request.data['dataset']
+            name = request.data['name']
         except MultiValueDictKeyError:
             return Response('Missing dataset name', status=status.HTTP_400_BAD_REQUEST)
         if not name:
             return Response('Missing dataset name', status=status.HTTP_400_BAD_REQUEST)
         try:
-            if len(request.FILES) > 2:
-                return Response('Too many files', status=status.HTTP_400_BAD_REQUEST)
-            examples, labels = request.FILES['file[0]'], request.FILES['file[1]'] 
+            examples, labels = request.FILES['examples'], request.FILES['labels'] 
         except MultiValueDictKeyError:
             return Response('Missing dataset files', status=status.HTTP_400_BAD_REQUEST)
         if examples.name != 'examples.csv':
