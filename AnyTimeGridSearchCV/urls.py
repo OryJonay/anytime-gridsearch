@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from rest_framework.documentation import include_docs_urls
 
 from AnyTimeGridSearchCV.grids.views import GridsListView, GridDetailView, \
     GridResultsList, DataSetsList, \
@@ -31,5 +32,6 @@ urlpatterns = [
     url(r'^datasets/(?P<name>.+)/grids$', DataSetGridsListView.as_view(), name='dataset_grids'),
     url(r'^estimators/$', EstimatorsListView.as_view(), name="estimators_list"),
     url(r'^estimators/(?P<clf>.+)$', EstimatorDetailView.as_view(), name="estimator_detail"),
-    url(r'^gridsearch_create/$', ATGridSearchCreateView.as_view(), name='gridsearch_create')
+    url(r'^gridsearch_create/$', ATGridSearchCreateView.as_view(), name='gridsearch_create'),
+    url(r'^docs/', include_docs_urls(title='API Documentation'))
 ]

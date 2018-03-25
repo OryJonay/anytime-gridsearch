@@ -19,11 +19,17 @@ from AnyTimeGridSearchCV.grids.serializers import GridSearchSerializer, \
 
 
 class EstimatorsListView(APIView):
+    """
+    Returns a list of all available scikit-learn classifiers.
+    """
     
     def get(self, request, *args, **kwargs):
         return Response(list(ESTIMATORS_DICT.keys()), status=status.HTTP_200_OK)
 
 class EstimatorDetailView(APIView):
+    """
+    Returns a detailed view of a scikit-learn classifier - all available arguments for the classifier.
+    """
     
     def get(self, request, *args, **kwargs):
         try:
@@ -37,6 +43,9 @@ class EstimatorDetailView(APIView):
                         status=status.HTTP_200_OK)
 
 class GridsListView(ListCreateAPIView):
+    """
+    Returns a list of all available grid searches.
+    """
     
     queryset = GridSearch.objects.all()
     serializer_class = GridSearchSerializer
@@ -45,12 +54,22 @@ class GridsListView(ListCreateAPIView):
         return ListCreateAPIView.post(self, request, *args, **kwargs)
     
 class GridDetailView(RetrieveAPIView):
+    """
+    Returns the specified grid (uuid, dataset name and scikit-learn classifier name).
+    """
     
     queryset = GridSearch.objects.all()
     serializer_class = GridSearchSerializer
     lookup_field = 'uuid'
 
 class GridResultsList(ListCreateAPIView):
+    """
+    get:
+    Returns a list of all the results (CV classifications) for given grid.
+
+    post:
+    Creates a new result instance for specified grid.
+    """
     
     queryset = CVResult.objects.all()
     serializer_class = CVResultSerializer
@@ -78,6 +97,13 @@ class GridResultsList(ListCreateAPIView):
         return Response(CVResultSerializer(cv_result).data, status=status.HTTP_201_CREATED)
     
 class DataSetsList(ListCreateAPIView):
+    """
+    get:
+    Returns a list of all the existing datasets.
+
+    post:
+    Creates a new dataset instance.
+    """
     
     queryset = DataSet.objects.all()
     serializer_class = DatasetSerializer
@@ -109,6 +135,9 @@ class DataSetsList(ListCreateAPIView):
             return Response('Name already exists', status=status.HTTP_400_BAD_REQUEST)
     
 class DataSetGridsListView(ListAPIView):
+    """
+    Returns all grid searches on the given dataset.
+    """
     
     queryset = GridSearch.objects.all()
     serializer_class = GridSearchSerializer
@@ -118,6 +147,9 @@ class DataSetGridsListView(ListAPIView):
         return _ds.grid_searches.all()
     
 class ATGridSearchCreateView(APIView):
+    """
+    Creates a new ATGridSearch instance (with the grid specified in the request) and starts it.
+    """
     
     def post(self, request, *args, **kwargs):
         try:
