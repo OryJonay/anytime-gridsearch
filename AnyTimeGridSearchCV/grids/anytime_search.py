@@ -19,6 +19,7 @@ from sklearn.utils.testing import all_estimators
 from sklearn.utils.validation import indexable, _num_samples
 
 from AnyTimeGridSearchCV.grids.models import DataSet
+from numpy import arange
 
 
 ESTIMATORS_DICT = {e[0]:e[1] for e in all_estimators()}
@@ -68,7 +69,7 @@ def fit_and_save(estimator, X, y=None, groups=None, scoring=None, cv=None,
 
 def _convert_clf_param(val):
     if type(val) is dict: 
-        return range(int(val['start']), int(val['end'])+1, int(val['skip']))
+        return arange(float(val['start']), float(val['end'])+1, float(val['skip']))
     elif type(val) is list:
         return [v == 'True' for v in val]
     elif type(val) is str:

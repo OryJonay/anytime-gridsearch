@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 
 from AnyTimeGridSearchCV.grids.anytime_search import ESTIMATORS_DICT, \
     _convert_clf_param, ATGridSearchCV
-from AnyTimeGridSearchCV.grids.models import GridSearch, CVResult, DataSet,\
+from AnyTimeGridSearchCV.grids.models import GridSearch, CVResult, DataSet, \
     CVResultScore
 from AnyTimeGridSearchCV.grids.serializers import GridSearchSerializer, \
     CVResultSerializer, DatasetSerializer
@@ -99,10 +99,10 @@ class GridResultsList(ListCreateAPIView):
 class DataSetsList(ListCreateAPIView):
     """
     get:
-    Returns a list of all the existing datasets.
+    Returns a list of all the existing Datasets.
 
     post:
-    Creates a new dataset instance.
+    Creates a new Dataset instance.
     """
     
     queryset = DataSet.objects.all()
@@ -136,7 +136,7 @@ class DataSetsList(ListCreateAPIView):
     
 class DataSetGridsListView(ListAPIView):
     """
-    Returns all grid searches on the given dataset.
+    Returns all grid searches on the given Dataset.
     """
     
     queryset = GridSearch.objects.all()
