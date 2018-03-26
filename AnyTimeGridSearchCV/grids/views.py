@@ -33,7 +33,7 @@ class EstimatorDetailView(APIView):
     Returns a detailed view of a scikit-learn classifier - all available arguments for the classifier.
     """
     
-    schema = schemas.ManualSchema(fields=[
+    schema = schemas.AutoSchema(manual_fields=[
         coreapi.Field(
             'clf',
             required=True,
@@ -87,7 +87,7 @@ class GridResultsList(ListCreateAPIView):
     queryset = CVResult.objects.all()
     serializer_class = CVResultSerializer
     
-    schema = schemas.ManualSchema(fields=[
+    schema = schemas.AutoSchema(manual_fields=[
         coreapi.Field(
             'uuid',
             required=True,
@@ -166,7 +166,7 @@ class DataSetGridsListView(ListAPIView):
     queryset = GridSearch.objects.all()
     serializer_class = GridSearchSerializer
     
-    schema = schemas.ManualSchema(fields=[
+    schema = schemas.AutoSchema(manual_fields=[
         coreapi.Field(
             "name",
             required=True,
