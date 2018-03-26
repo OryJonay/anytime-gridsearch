@@ -143,6 +143,17 @@ class TestViews(AbstractGridsTestCase):
         response = DjangoClient().post(reverse('gridsearch_create'), json.dumps(post_data), content_type="application/json")
         self.assertEqual(201, response.status_code, response.data)
         
+    def test_atgridsearch_post_floats(self):
+        examples_file, label_file = _create_dataset()
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
+                                              examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
+                                              labels=SimpleUploadedFile(label_file.name, label_file.read()))
+        post_data = {'clf':tree.DecisionTreeClassifier.__name__, 'dataset':ds.name}
+        post_data['args'] = {'max_features': {'start': 5.5, 'end': 12.5, 'skip': 3}}
+        
+        response = DjangoClient().post(reverse('gridsearch_create'), json.dumps(post_data), content_type="application/json")
+        self.assertEqual(201, response.status_code, response.data)
+        
     def test_atgridsearch_post_no_dataset(self):
         post_data = {'clf':tree.DecisionTreeClassifier.__name__, 'dataset':'TEST'}
         post_data['args'] = {'criterion': 'gini, entropy',
