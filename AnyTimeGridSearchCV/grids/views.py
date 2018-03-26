@@ -1,10 +1,12 @@
 import json
 
+import coreapi
+import coreschema
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.utils.datastructures import MultiValueDictKeyError
 from numpydoc import docscrape
-from rest_framework import status
+from rest_framework import status, schemas
 from rest_framework.generics import ListAPIView, RetrieveAPIView, \
     ListCreateAPIView
 from rest_framework.response import Response
@@ -30,6 +32,17 @@ class EstimatorDetailView(APIView):
     """
     Returns a detailed view of a scikit-learn classifier - all available arguments for the classifier.
     """
+    
+    schema = schemas.ManualSchema(fields=[
+        coreapi.Field(
+            'clf',
+            required=True,
+            location='path',
+            schema=coreschema.String(
+              description='scikit-learn Estimator name'
+            )
+        ),
+    ])
     
     def get(self, request, *args, **kwargs):
         try:
@@ -73,6 +86,17 @@ class GridResultsList(ListCreateAPIView):
     
     queryset = CVResult.objects.all()
     serializer_class = CVResultSerializer
+    
+    schema = schemas.ManualSchema(fields=[
+        coreapi.Field(
+            'uuid',
+            required=True,
+            location='path',
+            schema=coreschema.String(
+              description='GridSearch UUID'
+            )
+        ),
+    ])
     
     def get_queryset(self):
         _gs = get_object_or_404(GridSearch, uuid=self.kwargs['uuid'])
@@ -141,6 +165,17 @@ class DataSetGridsListView(ListAPIView):
     
     queryset = GridSearch.objects.all()
     serializer_class = GridSearchSerializer
+    
+    schema = schemas.ManualSchema(fields=[
+        coreapi.Field(
+            "name",
+            required=True,
+            location='path',
+            schema=coreschema.String(
+              description='Dataset name'
+            )
+        ),
+    ])
     
     def get_queryset(self):
         _ds = get_object_or_404(DataSet, name=self.kwargs['name'])
