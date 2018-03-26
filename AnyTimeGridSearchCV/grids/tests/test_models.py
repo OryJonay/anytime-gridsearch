@@ -42,10 +42,10 @@ class TestModels(AbstractGridsTestCase):
         clf = tree.DecisionTreeClassifier()
         _gs , _ = GridSearch.objects.get_or_create(classifier=clf.__class__.__name__)
         cv_result, _ = CVResult.objects.get_or_create(params=clf.get_params(),gridsearch=_gs)
-        accuracy_result = CVResultScore.objects.create(score=0.5, scorer='accuracy', 
+        CVResultScore.objects.create(score=0.5, scorer='accuracy', 
                                                        train_scores=[0.5, 0.5], test_scores=[0.5, 0.5],
                                                        cv_result=cv_result)
-        f1_result = CVResultScore.objects.create(score=0.5, scorer='f1', 
+        CVResultScore.objects.create(score=0.5, scorer='f1', 
                                                        train_scores=[0.6, 0.7], test_scores=[0.4, 0.6],
                                                        cv_result=cv_result)
         self.assertEqual(2, cv_result.scores.all().count())

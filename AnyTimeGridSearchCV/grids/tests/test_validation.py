@@ -7,7 +7,7 @@ from sklearn.model_selection._validation import cross_val_score
 
 from AnyTimeGridSearchCV.grids.anytime_search import ATGridSearchCV, \
     NoDatasetError
-from AnyTimeGridSearchCV.grids.models import GridSearch, CVResult, DataSet
+from AnyTimeGridSearchCV.grids.models import GridSearch, DataSet
 from AnyTimeGridSearchCV.grids.tests import AbstractGridsTestCase, \
     _create_dataset
 from sklearn.exceptions import NotFittedError

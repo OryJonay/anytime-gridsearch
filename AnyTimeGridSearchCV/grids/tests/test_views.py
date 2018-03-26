@@ -39,7 +39,7 @@ class TestViews(AbstractGridsTestCase):
         
     def test_estimators_detail(self):
         client = DjangoClient()
-        for clf_name, clf in all_estimators():
+        for clf_name, _ in all_estimators():
             response = client.get(reverse('estimator_detail', kwargs={'clf': clf_name}))
             self.assertEqual(200, response.status_code)
             for param_data in response.data:
@@ -47,7 +47,7 @@ class TestViews(AbstractGridsTestCase):
                 
     def test_dataset_get(self):
         examples_file, label_file = _create_dataset()
-        ds, _ = DataSet.objects.get_or_create(name='TEST', 
+        DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
         
@@ -87,14 +87,14 @@ class TestViews(AbstractGridsTestCase):
         self.assertEqual(b'"Missing dataset name"', response.content)
         
     def test_dataset_post_missing_examples(self):
-        examples_file, label_file = _create_dataset()
+        _, label_file = _create_dataset()
         client = DjangoClient()
         response = client.post(reverse('datasets'), data={'name':'TEST', 'labels': label_file})
         self.assertEqual(400, response.status_code)
         self.assertEqual(b'"Missing dataset files"', response.content)
         
     def test_dataset_post_missing_labels(self):
-        examples_file, label_file = _create_dataset()
+        examples_file, _ = _create_dataset()
         client = DjangoClient()
         response = client.post(reverse('datasets'), data={'name':'TEST', 'examples': examples_file})
         self.assertEqual(400, response.status_code)
@@ -135,7 +135,7 @@ class TestViews(AbstractGridsTestCase):
         ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
-        post_data = {'clf':tree.DecisionTreeClassifier.__name__, 'dataset':ds.name}
+        post_data = {'clf':'DecisionTreeClassifier', 'dataset':ds.name}
         post_data['args'] = {'criterion': 'gini, entropy',
                              'max_features': {'start': 5, 'end': 10, 'skip': 1},
                              'presort': ['True', 'False']}
@@ -148,14 +148,14 @@ class TestViews(AbstractGridsTestCase):
         ds, _ = DataSet.objects.get_or_create(name='TEST', 
                                               examples=SimpleUploadedFile(examples_file.name, examples_file.read()),
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
-        post_data = {'clf':tree.DecisionTreeClassifier.__name__, 'dataset':ds.name}
+        post_data = {'clf':'DecisionTreeClassifier', 'dataset':ds.name}
         post_data['args'] = {'max_features': {'start': 5.5, 'end': 12.5, 'skip': 3}}
         
         response = DjangoClient().post(reverse('gridsearch_create'), json.dumps(post_data), content_type="application/json")
         self.assertEqual(201, response.status_code, response.data)
         
     def test_atgridsearch_post_no_dataset(self):
-        post_data = {'clf':tree.DecisionTreeClassifier.__name__, 'dataset':'TEST'}
+        post_data = {'clf':'DecisionTreeClassifier', 'dataset':'TEST'}
         post_data['args'] = {'criterion': 'gini, entropy',
                              'max_features': {'start': 5, 'end': 10, 'skip': 1}}
         
@@ -184,7 +184,7 @@ class TestViews(AbstractGridsTestCase):
                                               labels=SimpleUploadedFile(label_file.name, label_file.read()))
         
         
-        gs_, _ =GridSearch.objects.get_or_create(classifier=reg.__class__.__name__, dataset=ds)
+        GridSearch.objects.get_or_create(classifier=reg.__class__.__name__, dataset=ds)
         client = DjangoClient()
         response = client.get(reverse('dataset_grids', kwargs={'name': 'TEST'}))
         self.assertEqual(200, response.status_code)

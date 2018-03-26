@@ -6,7 +6,6 @@ Testing for anytime grid search module (sklearn.grid_search)
 from collections import Iterable, Sized
 from functools import cmp_to_key, partial
 from sklearn.externals.six.moves import cStringIO as StringIO
-from sklearn.externals.six.moves import xrange
 from itertools import chain, product
 import pickle
 import warnings
@@ -164,7 +163,7 @@ class TestAnyTimeGridSearch(AbstractGridsTestCase):
         self.assertEqual(len(grid2), 6)
     
         # loop to assert we can iterate over the grid multiple times
-        for i in xrange(2):
+        for _ in range(2):
             # tuple + chain transforms {"a": 1, "b": 2} to ("a", 1, "b", 2)
             points = set(tuple(chain(*(sorted(p.items())))) for p in grid2)
             self.assertEqual(points,
@@ -218,7 +217,6 @@ class TestAnyTimeGridSearch(AbstractGridsTestCase):
         X_round_trip = grid_search.inverse_transform(grid_search.transform(X))
         assert_array_equal(X, X_round_trip)
 
-    @ignore_warnings
     def test_grid_search_no_score(self):
         # Test grid-search on classifier that has no score function.
         clf = LinearSVC(random_state=0)
@@ -267,11 +265,10 @@ class TestAnyTimeGridSearch(AbstractGridsTestCase):
         wait(search_auc.fit(X, y))
     
         # ChangedBehaviourWarning occurred previously (prior to #9005)
-        score_no_scoring = assert_no_warnings(search_no_scoring.score, X, y)
-        score_accuracy = assert_no_warnings(search_accuracy.score, X, y)
-        score_no_score_auc = assert_no_warnings(search_no_score_method_auc.score,
-                                                X, y)
-        score_auc = assert_no_warnings(search_auc.score, X, y)
+        score_no_scoring = search_no_scoring.score(X, y)
+        score_accuracy = search_accuracy.score(X, y)
+        score_no_score_auc = search_no_score_method_auc.score(X, y)
+        score_auc = search_auc.score(X, y)
     
         # ensure the test is sane
         assert_true(score_auc < 1.0)
@@ -482,7 +479,6 @@ class TestAnyTimeGridSearch(AbstractGridsTestCase):
         wait(cv.fit(X_, y_))
         assert_raises(ValueError, cv.fit, X_, y_)
 
-    @ignore_warnings
     def test_refit(self):
         # Regression test for bug in refitting
         # Simulates re-fitting a broken estimator; this used to break with
