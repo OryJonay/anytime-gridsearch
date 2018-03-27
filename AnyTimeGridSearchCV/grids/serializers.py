@@ -24,7 +24,7 @@ class CVResultSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CVResult
-        fields = ('params', 'gridsearch', 'errors', 'scores', 'id', 'fit_time') 
+        fields = ('params', 'errors', 'scores', 'id', 'fit_time') 
         
 class DatasetSerializer(serializers.ModelSerializer):
     

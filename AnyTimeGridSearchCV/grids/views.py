@@ -57,7 +57,11 @@ class EstimatorDetailView(APIView):
 
 class GridsListView(ListCreateAPIView):
     """
+    get:
     Returns a list of all available grid searches.
+    
+    post:
+    Creates a new grid search.
     """
     
     queryset = GridSearch.objects.all()
@@ -74,6 +78,16 @@ class GridDetailView(RetrieveAPIView):
     queryset = GridSearch.objects.all()
     serializer_class = GridSearchSerializer
     lookup_field = 'uuid'
+    
+class GridResultsListSchema(schemas.AutoSchema):
+    
+    def get_manual_fields(self, path, method):
+        manual_fields = schemas.AutoSchema.get_manual_fields(self, path, method)
+        if method == 'GET':
+            return manual_fields
+        elif method == 'POST':
+            return manual_fields + [coreapi.Field('cv_data', required=True, location='form',  
+                                                  schema=coreschema.Object(description='Cross validation result'))]
 
 class GridResultsList(ListCreateAPIView):
     """
@@ -87,7 +101,7 @@ class GridResultsList(ListCreateAPIView):
     queryset = CVResult.objects.all()
     serializer_class = CVResultSerializer
     
-    schema = schemas.AutoSchema(manual_fields=[
+    schema = GridResultsListSchema(manual_fields=[
         coreapi.Field(
             'uuid',
             required=True,
@@ -95,7 +109,7 @@ class GridResultsList(ListCreateAPIView):
             schema=coreschema.String(
               description='GridSearch UUID'
             )
-        ),
+        ), 
     ])
     
     def get_queryset(self):
@@ -168,7 +182,7 @@ class DataSetGridsListView(ListAPIView):
     
     schema = schemas.AutoSchema(manual_fields=[
         coreapi.Field(
-            "name",
+            'name',
             required=True,
             location='path',
             schema=coreschema.String(
@@ -185,6 +199,28 @@ class ATGridSearchCreateView(APIView):
     """
     Creates a new ATGridSearch instance (with the grid specified in the request) and starts it.
     """
+    
+    schema = schemas.AutoSchema(manual_fields=[
+        coreapi.Field(
+            'dataset',
+            required=True,
+            location='form',
+            schema=coreschema.String(description='Dataset name')
+        ),
+        coreapi.Field(
+            'clf',
+            required=True,
+            location='form',
+            schema=coreschema.String(description='scikit-learn estimator name')
+        ),
+        coreapi.Field(
+            'args',
+            required=True,
+            location='form',
+            schema=coreschema.Object(description='Grid to search'),
+        ),
+                                          
+    ])
     
     def post(self, request, *args, **kwargs):
         try:

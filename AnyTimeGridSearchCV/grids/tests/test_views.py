@@ -1,6 +1,8 @@
 from _io import BytesIO
 import json
 
+import coreapi
+import coreschema
 from distributed.client import wait
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client as DjangoClient
@@ -15,6 +17,8 @@ from AnyTimeGridSearchCV.grids.anytime_search import ATGridSearchCV, \
 from AnyTimeGridSearchCV.grids.models import DataSet, GridSearch, CVResult
 from AnyTimeGridSearchCV.grids.tests import AbstractGridsTestCase, \
     _create_dataset
+from AnyTimeGridSearchCV.grids.views import GridResultsListSchema, \
+    GridResultsList
 
 
 class TestViews(AbstractGridsTestCase):
@@ -273,7 +277,8 @@ class TestViews(AbstractGridsTestCase):
         if hasattr(res, 'status_code'): # pragma: no cover
             self.assertEqual(res.status_code, 404)
         else:
-            self.assertIsNone(res)
+            self.assertIsNone(res) # pragma: no cover
+            
     def test_grids_list_get(self):
         iris = load_iris()
         client = DjangoClient()
@@ -351,3 +356,21 @@ class TestViews(AbstractGridsTestCase):
         response = client.get(reverse('grid_results', kwargs={'uuid':gs._uuid}))
         self.assertEqual(200, response.status_code)
         self.assertEqual(GridSearch.objects.get(uuid=gs._uuid).results.all().count(), len(response.data))
+        
+    def test_grid_results_schema(self):
+        examples, labels = _create_dataset()
+        ds, _ = DataSet.objects.get_or_create(name='TEST', 
+                                              examples=SimpleUploadedFile(examples.name, examples.read()),
+                                              labels=SimpleUploadedFile(labels.name, labels.read()))
+        gs = ATGridSearchCV(tree.DecisionTreeClassifier(),{'criterion':['gini','entropy']},
+                            dataset=ds.pk,
+                            webserver_url=self.live_server_url)
+        wait(gs.fit())
+        get_fields = GridResultsList.schema.get_manual_fields(reverse('grid_results', kwargs={'uuid':gs._uuid}), 
+                                                  'GET')
+        post_fields = GridResultsList.schema.get_manual_fields(reverse('grid_results', kwargs={'uuid':gs._uuid}), 
+                                                  'POST')
+        self.assertListEqual(get_fields, [coreapi.Field('uuid', required=True, 
+                                                        location='path', schema=coreschema.String(description='GridSearch UUID'))])
+        self.assertListEqual(get_fields+[coreapi.Field('cv_data', required=True, location='form',  
+                                                  schema=coreschema.Object(description='Cross validation result'))], post_fields) 
