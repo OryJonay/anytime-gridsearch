@@ -230,7 +230,7 @@ class ATGridSearchCV(GridSearchCV):
         **fit_params : dict of string -> object
             Parameters passed to the ``fit`` method of the estimator
         """
-        if self.fit_params is not None:
+        if self.fit_params is not None: # pragma: no coverj
             warnings.warn('"fit_params" as a constructor argument was '
                           'deprecated in version 0.19 and will be removed '
                           'in version 0.21. Pass fit parameters to the '
