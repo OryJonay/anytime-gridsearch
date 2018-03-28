@@ -6,7 +6,7 @@ services:
     environment:
       - POSTGRES_DB=anytimegridsearch
   backend:
-    image: anytime-gridsearch:latest
+    image: oryjonay/anytime-gridsearch
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
