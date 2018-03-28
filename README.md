@@ -39,6 +39,14 @@ pip install -r requirements.txt
 python manage.py test
 ```
 
+Alternatively, use Docker Compose to run everything:
+
+``` bash
+docker-compose up
+```
+
+And the web application will run on localhost (on port 8000).
+
 ## Usage
 The old way of using scikit-learn's GridSearchCV (taken from the examples part of [the documentation](http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html)):
 ``` python
@@ -65,6 +73,10 @@ print clf.best_params_['kernel']
 ```
 And that's (mostly) it- just change the search algorithm to the new one, and voilà- all done!
 The call to the search algorithm is non blocking, so it's possible to query the search algorithm before all the grid points are cross validated.
+
+## API DOCS
+
+API documentation can be found on the web server at /docs/.
 
 ## Roadmap
 
