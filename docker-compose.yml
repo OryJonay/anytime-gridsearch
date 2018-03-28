@@ -5,8 +5,8 @@ services:
     image: postgres:9.6
     environment:
       - POSTGRES_DB=anytimegridsearch
-  web:
-    build: .
+  backend:
+    image: anytime-gridsearch:latest
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
