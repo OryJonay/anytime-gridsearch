@@ -82,4 +82,4 @@ API documentation can be found on the web server at /docs/.
 
 Things to do in the future (not sorted by priority):
 
-* Docker images for project
+* Home page for project
