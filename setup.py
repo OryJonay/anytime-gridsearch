@@ -5,20 +5,17 @@ Created on Aug 9, 2017
 '''
 
 import os
-import uuid
-
-from pip.req import parse_requirements
 from setuptools import setup, find_packages
 
 from AnyTimeGridSearchCV import grids
 
-install_reqs = parse_requirements(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
-                                               'requirements.txt'), session=uuid.uuid1())
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'requirements.txt'), 'r') as req_file:
+    install_reqs = req_file.read().strip().split('\n')
 
 setup(
-    name = "AnyTimeGridSearchCV",
-    version = grids.__version__,
-    packages = find_packages(),
-    include_package_data = True,
-    package_data={'': ['*.log', '*.json', '*.md', '*.html', '*.js', '*.png'],}
-    )
+    name="AnyTimeGridSearchCV",
+    version=grids.__version__,
+    packages=find_packages(),
+    include_package_data=True,
+    package_data={'': ['*.log', '*.json', '*.md', '*.html', '*.js', '*.png'], }
+)
