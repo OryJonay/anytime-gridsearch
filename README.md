@@ -20,9 +20,9 @@ The project consists of the following parts:
 The project requires:
 
 * Python (>=3.6)
-* Django (>=2.0)
+* Django (>=2.1)
 * PostgreSQL (>=9.6)
-* distributed (>=1.18.3)
+* distributed (>=1.25)
 
 ``` bash
 # clone repo
